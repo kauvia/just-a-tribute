@@ -15,10 +15,10 @@ body {
     background-color: rgb(255, 0, 0);
     border-top:3px solid black;
 }
-#testbox{
+#object{
     position: absolute;
     width:25px;
     height:25px;
     background-color: black;
-    border-top:3px solid black;
+    border-top:3px solid fuchsia;
 }
