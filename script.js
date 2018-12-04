@@ -12,6 +12,7 @@ onkeydown = onkeyup = function (e) {
     }
     if (mapKeys[83]) { //s
         player.decceleratePlayer();
+
         this.console.log('s='+mapKeys[83])
     };
 
@@ -23,7 +24,6 @@ onkeydown = onkeyup = function (e) {
         player.angle += 9;
     };
     if (mapKeys[82]) { //r
-        this.console.log(this);
     };
     if (mapKeys[70]) { //f
     };
