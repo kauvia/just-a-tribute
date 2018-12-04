@@ -1,18 +1,15 @@
 const mapKeys = {};
+const userInputListener = ()=> {
 onkeydown = onkeyup = function (e) {
     e = e;
     mapKeys[e.keyCode] = e.type == 'keydown';
     if (mapKeys[87]) { //w
-        //   player.velocity-=.1;   
-        player.accel -= .01;
-    } else {
-  //      player.accel = 0
+        player.velocity -= player.accel;
+        this.console.log('w='+mapKeys[87]);
     };
     if (mapKeys[83]) { //s
-        //   player.velocity+=.1;
-        player.accel += .01;
-    } else if (!mapKeys[87] && !mapKeys[83]) {
-        player.accel = 0;
+        player.velocity += player.accel;
+        this.console.log('s='+mapKeys[83])
     };
 
 
@@ -27,4 +24,4 @@ onkeydown = onkeyup = function (e) {
     };
     if (mapKeys[70]) { //f
     };
-}
+}}

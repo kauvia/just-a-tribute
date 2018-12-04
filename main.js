@@ -17,53 +17,52 @@ class _gameObject {
 }
 
 class _player extends _gameObject {
-    constructor(posX, posY, dispX, dispY) {
-        super(posX, posY, dispX, dispY);
+    constructor(posX, posY, dispX, dispY, accel) {
+        super(posX, posY, dispX, dispY, accel);
     }
     displayPlayer() {
         this.display.id = "player";
         gameContainer.appendChild(this.display)
     }
     drawPlayer() {
-        this.display.style.left = this.posX + 'px';
-        this.display.style.top = this.posY + 'px';
+        this.dispX=this.posX;   //disable for player-centric
+        this.dispY=this.posY;   //ditto
+        this.display.style.left = this.dispX + 'px';
+        this.display.style.top = this.dispY + 'px';
         this.display.style.transform = `rotate(${this.angle}deg)`;
 
     }
     updatePlayer() {
-        //   this.accel<=0.1 ? this.accel+=.01
-        //  :this.accel>=0.1 ? this.accel-=.01
-        //   :this.accel = 0;
-        console.log('accel =' + this.accel + ' velocity=' + this.velocity);
-        this.velocity += this.accel;
+        console.log( `dispXY=${this.dispX},${this.dispY}, posXY=${this.posX},${this.posY}`);
         this.posX -= Math.sin(toRad(this.angle)) * this.velocity;
         this.posY += Math.cos(toRad(this.angle)) * this.velocity;
         this.brakePlayer();
     }
     brakePlayer() {
-        if (this.velocity > 2) {
-            this.velocity = 2
+        if (this.velocity > 1) {
+            this.velocity = 1
         };
-        if (this.velocity < -2) {
-            this.velocity = -2
+        if (this.velocity < -1) {
+            this.velocity = -1
         };
- //       if (!mapKeys[87] && !mapKeys[83]) {
-  //          if (player.velocity <= -.025) {
-   //             player.velocity += 0.025
-    //        } else if (player.velocity > -0.025 && player.velocity < 0.025) {
-     //           player.velocity = 0;
-     //       } else if (player.velocity >= 0.025) {
-         //       player.velocity -= 0.025
-       //     }
-     //   }
+        //       if (!mapKeys[87] && !mapKeys[83]) {
+        //          if (player.velocity <= -.025) {
+        //             player.velocity += 0.025
+        //        } else if (player.velocity > -0.025 && player.velocity < 0.025) {
+        //           player.velocity = 0;
+        //       } else if (player.velocity >= 0.025) {
+        //       player.velocity -= 0.025
+        //     }
+        //   }
 
     }
 
 }
-const player = new _player(150, 150, 150, 150);
+const player = new _player(150, 150, 150, 150, 0.1);
 player.displayPlayer();
 
 const mainLoop = () => {
+    userInputListener();
     player.updatePlayer();
     player.drawPlayer();
     requestAnimationFrame(mainLoop);
