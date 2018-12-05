@@ -5,8 +5,16 @@ body {
 #container {
     border:1px solid black;
     height: 600px;
-    width: 1000px;
+    width: 600px;
     
+}
+#map-background{
+    position: absolute;
+    top:0px;
+    left:0px;
+    height:5000px;
+    width: 5000px;
+    border: 3px solid red;
 }
 #player{
     position: absolute;
@@ -21,4 +29,13 @@ body {
     height:25px;
     background-color: black;
     border-top:3px solid fuchsia;
+    display:none;
+}
+#bullet{
+    position: absolute;
+    width:5px;
+    height:200px;
+    background-color: black;
+    border-top:3px solid fuchsia;
+    display:block;
 }

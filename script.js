@@ -5,15 +5,15 @@ onkeydown = onkeyup = function (e) {
     mapKeys[e.keyCode] = e.type == 'keydown';
     if (mapKeys[87]) { //w
         player.acceleratePlayer();
-        this.console.log('w='+mapKeys[87]);
+//        this.console.log('w='+mapKeys[87]);
     };
     if (!mapKeys[87]){
-        this.console.log('w='+mapKeys[87])
+//        this.console.log('w='+mapKeys[87])
     }
     if (mapKeys[83]) { //s
         player.decceleratePlayer();
 
-        this.console.log('s='+mapKeys[83])
+  //      this.console.log('s='+mapKeys[83])
     };
 
 
