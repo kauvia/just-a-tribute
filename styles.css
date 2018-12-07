@@ -44,3 +44,12 @@ body {
     border-top: 3px solid rgb(172, 17, 172);
     display: block;
 }
+
+.mineral {
+    position: absolute;
+    width: 10px;
+    height: 8px;
+    background-color: black;
+    border-top: 3px solid rgb(172, 17, 172);
+    display: block;
+}

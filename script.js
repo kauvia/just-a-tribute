@@ -25,6 +25,7 @@ const userInputListener = () => {
             player.angle += 9;
         };
         if (mapKeys[82]) { //r
+            player.pickUpMineral();
         };
         if (mapKeys[70]) { //f
             player.shootBullet();
