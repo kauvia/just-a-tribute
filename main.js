@@ -4,19 +4,23 @@ const gameContainer = document.getElementById('container');
 
 
 class _gameObject {
-    constructor(posX, posY, dispX, dispY, accel = 0, veloX = 0, veloY = 0, angle = 0, display = document.createElement('div')) {
+    constructor(posX, posY, dispX, dispY, type, id, hp = 100, accel = 0, veloX = 0, veloY = 0, angle = 0, display = document.createElement('div')) {
         this.posX = posX;
         this.posY = posY;
         this.dispX = dispX;
         this.dispY = dispY;
+        this.type = type;
+        this.id = id;
+        this.hp = hp;
         this.accel = accel;
         this.veloX = veloX;
         this.veloY = veloY;
         this.angle = angle; //in degrees
         this.display = display;
     }
-    displayObject() {
-        this.display.id = "object";
+    initObject() {
+        this.display.className = this.type;
+        this.display.id = this.id;
         gameContainer.appendChild(this.display);
     }
     drawObject() {
@@ -25,24 +29,16 @@ class _gameObject {
         this.display.style.transform = `rotate(${this.angle}deg)`;
     }
     updateObject() {
+        this.posX += this.veloX;
+        this.posY -= this.veloY;
         this.dispX = this.posX - player.posX + player.dispX;
         this.dispY = this.posY - player.posY + player.dispY;
     }
 }
 
 class _player extends _gameObject {
-    constructor(posX, posY, dispX, dispY, accel) {
-        super(posX, posY, dispX, dispY, accel);
-    }
-    displayPlayer() {
-        this.display.id = "player";
-        gameContainer.appendChild(this.display)
-    }
-    drawPlayer() {
-        this.display.style.left = this.dispX + 'px';
-        this.display.style.top = this.dispY + 'px';
-        this.display.style.transform = `rotate(${this.angle}deg)`;
-
+    constructor(posX, posY, dispX, dispY, type, id, hp, accel) {
+        super(posX, posY, dispX, dispY, type, id, hp, accel);
     }
     updatePlayer() {
         this.posX += this.veloX;
@@ -56,46 +52,102 @@ class _player extends _gameObject {
         this.veloX -= Math.sin(toRad(this.angle)) * this.accel;
         this.veloY -= Math.cos(toRad(this.angle)) * this.accel;
     }
+    shootBullet() {
+        let bullet = new _bullet(this.posX, this.posY, 0, 0, 'bullet', '', 1, this.angle);
+        bullet.veloX = player.veloX + Math.sin(toRad(this.angle)) * bullet.accel;
+        bullet.veloY = player.veloY + Math.cos(toRad(this.angle)) * bullet.accel;
+        bullet.id = `bullet${bulletArray.length+ranN(10000)}`;
+        bullet.initObject();
+        bulletArray.push(bullet);
+        setTimeout(function () {
+            
+            console.log('delete the bullet');
+
+        }, 1000)
+
+        //        debugger;
+    }
 }
 
-const player = new _player(2500, 2500, 275, 275, 0.1);
-player.displayPlayer();
+class _asteroid extends _gameObject {
+    constructor(posX, posY, dispX, dispY, type, id, hp) {
+        super(posX, posY, dispX, dispY, type, id, hp)
+    }
+    deleteAsteroid() {
+        let deleteAsteroid = document.getElementById(`${this.display.id}`);
+        gameContainer.removeChild(deleteAsteroid);
+
+    }
+}
+
+class _mineral extends _gameObject {
+    constructor(posX, posY, type) {
+        super(posX, posY, type)
+    }
+}
+
+class _spaceStation extends _gameObject {
+    constructor(posX, posY, type) {
+        super(posX, posY, type)
+    }
+}
+
+class _enemy extends _gameObject {
+    constructor(posX, posY, type) {
+        super(posX, posY, type)
+    }
+}
+
+class _bullet extends _gameObject {
+    constructor(posX, posY, dispX, dispY, type, id, accel, angle) {
+        super(posX, posY, dispX, dispY, type, id);
+        this.accel = accel;
+        this.angle = angle;
+    }
+    updateBullet() {
+        this.posX += this.veloX;
+        this.posY -= this.veloY;
+        this.dispX = this.posX - player.posX + player.dispX;
+        this.dispY = this.posY - player.posY + player.dispY;
+    }
+    deleteBullet() {
+        let deleteBullet = document.getElementById(`${this.display.id}`);
+        gameContainer.removeChild(deleteBullet);
+
+    }
+
+
+}
+
+const player = new _player(2500, 2500, 275, 275, 'player', 'player1', 100, 0.1);
+player.initObject();
 
 const mainLoop = () => {
     playerBoundary();
     userInputListener();
     player.updatePlayer();
-    player.drawPlayer();
+    player.drawObject();
     mapBorder.updateObject();
     mapBorder.drawObject();
-    bullet.accelerateBullet();
-    bullet.updateBullet();
-    bullet.drawObject();
+    //bullets
+    for (bullet in bulletArray) {
+        bulletArray[bullet].updateBullet();
+        bulletArray[bullet].drawObject();
 
- //   console.log(`playerVeloX=${player.veloX}, playerVeloY=${player.veloY}`);
-
-    for (asteriod in asteriodList) {
-        asteriodList[asteriod].updateObject();
-        asteriodList[asteriod].drawObject();
     }
+    //asteriods
+    for (asteroid in asteroidList) {
+        asteroidList[asteroid].updateObject();
+        asteroidList[asteroid].drawObject();
+
+    }
+    collisionDetection();
+    //   console.log(`playerVeloX=${player.veloX}, playerVeloY=${player.veloY}`);
     requestAnimationFrame(mainLoop);
 }
 requestAnimationFrame(mainLoop);
-const asteriodList = [];
 
-const generateAsteriods = (num) => {
-    for (i = 0; i < num; i++) {
-        asteriodList.push(new _gameObject(ranN(5000), ranN(5000)));
-        asteriodList[i].displayObject();
 
-    }
-}
-const mapBorder = new _gameObject(0, 0);
-mapBorder.displayObject();
-mapBorder.display.id = "map-background";
-mapBorder.updateObject();
-mapBorder.drawObject();
-generateAsteriods(500);
 
 const playerBoundary = () => {
     if (player.posX < -300) {

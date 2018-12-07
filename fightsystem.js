@@ -1,31 +1,27 @@
-class _bullet extends _gameObject {
-    constructor(posX, posY, accel, angle) {
-        super(posX, posY);
-        this.accel = accel;
-        this.angle = angle;
+let bulletArray = [];
 
-    }
-    displayObject() {
-        this.display.id = "bullet";
-        gameContainer.appendChild(this.display);
-    }
-    updateBullet(){
-        this.posX +=this.veloX;
-        this.posY -= this.veloY;
-        this.dispX = this.posX - player.posX + player.dispX;
-        this.dispY = this.posY - player.posY + player.dispY;
+const collisionDetection = () => {
+    for (bullet in bulletArray) {
+        for (asteroid in asteroidList) {
+            if (Math.floor(bulletArray[bullet].posX) >= Math.floor(asteroidList[asteroid].posX) &&
+                Math.floor(bulletArray[bullet].posX) <= (Math.floor(asteroidList[asteroid].posX) + 25) &&
+                Math.floor(bulletArray[bullet].posY) >= Math.floor(asteroidList[asteroid].posY) &&
+                Math.floor(bulletArray[bullet].posY) <= (Math.floor(asteroidList[asteroid].posY) + 25)) {
+                asteroidList[asteroid].hp -= bulletArray[bullet].hp;
+                bulletArray[bullet].deleteBullet();
 
-    }
-    accelerateBullet() {
-        this.veloX = Math.sin(toRad(this.angle)) * this.accel;
-        this.veloY = Math.cos(toRad(this.angle)) * this.accel;
-    }
-    
+                bulletArray.splice(bullet, 1);
+                if (asteroidList[asteroid].hp <= 0) {
+                    asteroidList[asteroid].deleteAsteroid();
+                    asteroidList.splice(asteroid, 1)
+                };
 
+
+
+                break;
+                //          console.log(asteroidList[asteroid].hp);
+
+            }
+        }
+    }
 }
-
-let bullet = new _bullet(2400, 2300, 1, 50);
-bullet.displayObject();
-bullet.updateObject();
-
-bullet.drawObject();

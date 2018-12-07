@@ -1,11 +1,12 @@
 const visibleObject = () => {
-    for (asteriod in asteriodList) {
-        if (-300 <= asteriodList[asteriod].dispX && asteriodList[asteriod].dispX <= 900 &&
-            -300 <= asteriodList[asteriod].dispY && asteriodList[asteriod].dispY <= 900) {
-            asteriodList[asteriod].display.style.display = "block";
+    for (asteroid in asteroidList) {
+        if (-300 <= asteroidList[asteroid].dispX && asteroidList[asteroid].dispX <= 900 &&
+            -300 <= asteroidList[asteroid].dispY && asteroidList[asteroid].dispY <= 900) {
+                asteroidList[asteroid].display.style.display = "block";
         } else {
-            asteriodList[asteriod].display.style.display = "none";
+            asteroidList[asteroid].display.style.display = "none";
         }
     }
 }
+
 setInterval(visibleObject, 700);
