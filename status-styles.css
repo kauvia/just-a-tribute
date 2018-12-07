@@ -1,0 +1,17 @@
+.status-station{
+    margin:10% auto;
+    width:80%;
+    height:50%;
+    background-color: gray;
+    border: 1px solid black;
+    display: none;
+
+
+}
+.status-player{
+    margin:10% auto;
+    width:80%;
+    height:35%;
+    background-color: azure;
+    border: 1px solid black;
+}

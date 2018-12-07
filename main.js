@@ -85,6 +85,17 @@ class _player extends _gameObject {
 
         }
     }
+    enterStation() {
+        if (player.posX >= spaceStationJilted.posX &&
+            player.posX <= spaceStationJilted.posX + 200 &&
+            player.posY >= spaceStationJilted.posY &&
+            player.posY <= spaceStationJilted.posY + 200
+        ) {
+            stationContainer.style.display='block';
+            pauseGame();
+
+        }
+    }
 }
 
 class _asteroid extends _gameObject {
@@ -96,7 +107,7 @@ class _asteroid extends _gameObject {
         gameContainer.removeChild(deleteAsteroid);
     }
     spawnMineral() {
-        let mineral = new _mineral(this.posX, this.posY, this.dispX, this.dispY, 'mineral', '', ranN(10) / 10, ranN(360));
+        let mineral = new _mineral(this.posX, this.posY, this.dispX, this.dispY, 'mineral', '', ranN(10) / 20, ranN(360));
         mineral.veloX = Math.sin(toRad(mineral.angle)) * mineral.accel;
         mineral.veloY = Math.cos(toRad(mineral.angle)) * mineral.accel;
         mineral.id = `mineral${Object.keys(mineralList).length+ranN(100000)}`;
@@ -125,9 +136,10 @@ class _mineral extends _gameObject {
 }
 
 class _spaceStation extends _gameObject {
-    constructor(posX, posY, type) {
-        super(posX, posY, type)
+    constructor(posX, posY, dispX, dispY, type, id) {
+        super(posX, posY, dispX, dispY, type, id)
     }
+
 }
 
 class _enemy extends _gameObject {
@@ -158,40 +170,46 @@ class _bullet extends _gameObject {
 }
 
 const player = new _player(2500, 2500, 275, 275, 'player', 'player1', 100, 0.1);
-player.initObject();
+
 
 const mainLoop = () => {
-    playerBoundary();
-    userInputListener();
-    player.updatePlayer();
-    player.drawObject();
-    mapBorder.updateObject();
-    mapBorder.drawObject();
-    //bullets
-    if (Object.keys(bulletObjArray).length > 0) {
-        for (const bullet in bulletObjArray) {
-            bulletObjArray[bullet].updateBullet();
-            bulletObjArray[bullet].drawObject();
+    if (isGameRunning) {
+        playerBoundary();
+        userInputListener();
+        player.updatePlayer();
+        player.drawObject();
+        mapBorder.updateObject();
+        mapBorder.drawObject();
+        spaceStationJilted.updateObject();
+        spaceStationJilted.drawObject();
+        //bullets
+        if (Object.keys(bulletObjArray).length > 0) {
+            for (const bullet in bulletObjArray) {
+                bulletObjArray[bullet].updateBullet();
+                bulletObjArray[bullet].drawObject();
+            }
         }
-    }
 
-    //asteriods
-    for (const asteroid in asteroidList) {
-        asteroidList[asteroid].updateObject();
-        asteroidList[asteroid].drawObject();
+        //asteriods
+        for (const asteroid in asteroidList) {
+            asteroidList[asteroid].updateObject();
+            asteroidList[asteroid].drawObject();
 
-    }
+        }
 
-    //minerals
-    for (const mineral in mineralList) {
-        mineralList[mineral].updateObject();
-        mineralList[mineral].drawObject();
+        //minerals
+        for (const mineral in mineralList) {
+            mineralList[mineral].updateObject();
+            mineralList[mineral].drawObject();
+        }
+        collisionDetection();
+        //   console.log(`playerVeloX=${player.veloX}, playerVeloY=${player.veloY}`);
+        requestAnimationFrame(mainLoop);
     }
-    collisionDetection();
-    //   console.log(`playerVeloX=${player.veloX}, playerVeloY=${player.veloY}`);
-    requestAnimationFrame(mainLoop);
 }
-requestAnimationFrame(mainLoop);
+
+
+//requestAnimationFrame(mainLoop);
 
 
 
