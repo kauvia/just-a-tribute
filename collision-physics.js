@@ -1,22 +1,21 @@
 const visibleAsteroids = {};
-const mineralList = {};
+const oreList = {};
 
 const visibleObject = () => {
     for (asteroid in asteroidList) {
         if (-300 <= asteroidList[asteroid].dispXY[0] && asteroidList[asteroid].dispXY[0] <= 900 &&
             -300 <= asteroidList[asteroid].dispXY[1] && asteroidList[asteroid].dispXY[1] <= 900) {
-                visibleAsteroids[asteroidList[asteroid].id]=asteroidList[asteroid];
+            visibleAsteroids[asteroidList[asteroid].id] = asteroidList[asteroid];
         } else {
             delete visibleAsteroids[asteroidList[asteroid].id];
 
         }
-    }//sconsole.log(Object.keys(visibleAsteroids).length)
+    } //sconsole.log(Object.keys(visibleAsteroids).length)
 }
-let mineralCounter = 0;
 
 setInterval(visibleObject, 500);
 
-const collisionDetection = () => {
+const collisionDetection = (dt) => {
     for (bullet in bulletObjArray) {
         for (asteroid in visibleAsteroids) {
             if (bulletObjArray[bullet].posXY[0] + bulletObjArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
@@ -26,8 +25,7 @@ const collisionDetection = () => {
                 asteroidList[asteroid].hull -= bulletObjArray[bullet].damage;
                 delete bulletObjArray[bullet];
                 if (asteroidList[asteroid].hull <= 0) {
-                    //                    asteroidList[asteroid].spawnMineral();
-                    //                    asteroidList[asteroid].spawnMineral();
+                    asteroidList[asteroid].spawnOres(dt);
                     delete asteroidList[asteroid];
                     delete visibleAsteroids[asteroid];
 

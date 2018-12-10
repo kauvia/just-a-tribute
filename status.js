@@ -15,7 +15,7 @@ const stationElements = () => {
     exitStation.innerHTML = 'Leave Station';
     exitStation.onclick = function () {
         stationContainer.style.display = 'none';
-        resumeGame()
+        leaveStation()
     };
 }
 stationElements();
