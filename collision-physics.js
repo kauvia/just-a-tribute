@@ -29,7 +29,7 @@ const collisionDetection = (dt) => {
                     delete asteroidList[asteroid];
                     delete visibleAsteroids[asteroid];
 
-                    console.log(Object.keys(asteroidList).length)
+   //                 console.log(Object.keys(asteroidList).length)
                 };
 
 
