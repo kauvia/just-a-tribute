@@ -27,7 +27,7 @@ const resumeGame = () => {
 }
 const generateAsteroids = (num, numID, x0, width, y0, height) => {
     for (let i = 0; i < num; i++) {
-        let asteroid = new _asteroid(x0 + ranN(width), y0 + ranN(height), 'asteroid', `asteroid${i+numID}`, asteroids[0], []);
+        let asteroid = new _asteroid(x0 + ranN(width), y0 + ranN(height), 'asteroid', `asteroid${i+numID}`, asteroids[ranN(3)], []);
         asteroid.sprite = `images/asteroid${ranN(3)+1}.png`;
         asteroidList[asteroid.id] = asteroid;
         asteroidList[asteroid.id].angle = ranN(360);
@@ -57,12 +57,12 @@ const enemyArray = [];
 
 const generateEnemy = (num) => {
     for (let i = 0; i < num; i++){
-        let enemy = new _enemy(2400+ranN(300),2300+ranN(300),'enemy',`enemy${num}`,ships[1],[]);
+        let enemy = new _enemy(2400+ranN(300),2300+ranN(300),'enemy',`enemy${num}`,new _ship(ships[ranN(8)]),[]);
         enemy.angle=ranN(360);
         enemyArray.push(enemy);
     }
 }
-generateEnemy(10);
+generateEnemy(3);
 
 const findAngle = (obj1,obj2)=>{
     let angle = Math.atan2(obj2.posXY[1]-obj1.posXY[1],obj2.posXY[0]-obj1.posXY[0]);

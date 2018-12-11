@@ -1,6 +1,7 @@
 body {
     padding: 0;
     margin: 0;
+    background-color: grey;
 }
 
 #container {
@@ -12,17 +13,7 @@ body {
     width: 600px;
 }
 
-#secondary-container{
-    z-index: 5;
-    position: fixed;
-    top: 25px;
-    left: 650px;
-    height: 600px;
-    width: 300px;
-    border: 1px solid black;
-    background-color: antiquewhite;
 
-}
 
 .map-background {
     z-index: -1;

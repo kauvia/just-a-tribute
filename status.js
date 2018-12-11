@@ -5,6 +5,7 @@ const minimapContainer = document.createElement('div');
 
 const playerElements = () => {
     playerContainer.className = 'status-player';
+    playerContainer.id = 'player-details';
     minimapContainer.className = 'status-player';
     minimapContainer.id = 'minimap';
     secondaryContainer.appendChild(playerContainer);
@@ -75,13 +76,15 @@ const buttonFunctionality = (array) => {
 const updateCreditCargoDisp = () => {
     let tradeCreditCargo = document.getElementById('trade-credits-cargo');
     tradeCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+    let statusCreditCargo = document.getElementById('status-credit-cargo');
+    statusCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
 
 }
 
 stationElements();
 
 const minimapStatics = () => {
-  //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
+    //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
     for (let station in spaceStationArray) {
         let stationDisp = document.createElement('img');
         stationDisp.src = `${spaceStationArray[station].sprite}`;
@@ -120,3 +123,55 @@ const minimapUpdate = () => {
     playerDisp.style.transform = `rotate(${player.angle}deg)`;
     minimapContainer.appendChild(playerDisp);
 }
+
+const playerDetailSetup = () => {
+    let playerAndShip = document.createElement('div');
+    playerContainer.appendChild(playerAndShip);
+    let statusBars = ['Energy', 'Shield', 'Hull'];
+    for (let i = 0; i < statusBars.length; i++) {
+        let statusBarsContainer = document.createElement('div');
+        statusBarsContainer.style.margin = '10px 0px'
+        statusBarsContainer.id = statusBars[i];
+        playerContainer.appendChild(statusBarsContainer);
+        let name = document.createElement('div');
+        name.style.textAlign = 'left';
+        name.innerHTML = statusBars[i];
+        statusBarsContainer.appendChild(name);
+        let fullBar = document.createElement('div');
+        fullBar.style.width = '100%';
+        fullBar.style.borderTop = '1px solid black';
+        fullBar.style.borderBottom = '1px solid black';
+
+        fullBar.style.height = '20px';
+        statusBarsContainer.appendChild(fullBar);
+
+        let dynamicBar = document.createElement('div');
+        dynamicBar.id = `${statusBars[i]}-dynamic`;
+        dynamicBar.style.height = '20px';
+        dynamicBar.style.width = '100%';
+        dynamicBar.style.backgroundColor = 'blue';
+        //      dynamicBar.style.borderRight ='1px solid black';
+        fullBar.appendChild(dynamicBar)
+    }
+
+    let creditCargo = document.createElement('div');
+    creditCargo.id = 'status-credit-cargo';
+    playerContainer.appendChild(creditCargo);
+    creditCargo.style.textAlign = 'left';
+
+    playerAndShip.innerHTML = `Pilot : ${player.id}<br>  Ship : ${player.ship.name}`;
+    creditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+
+}
+
+const playerDetailUpdate = () => {
+    let energy = document.getElementById('Energy-dynamic');
+    let shield = document.getElementById('Shield-dynamic');
+    let hull = document.getElementById('Hull-dynamic');
+
+    energy.style.width = `${player.ship.energy/player.ship.maxEnergy*100}%`;
+    shield.style.width = `${player.ship.shield/player.ship.maxShield*100}%`;
+    hull.style.width = `${player.ship.hull/player.ship.maxHull*100}%`;
+}
+
+playerDetailSetup();

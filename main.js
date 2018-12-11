@@ -3,9 +3,31 @@ const toRad = (angleInDegree) => angleInDegree * Math.PI / 180;
 const gameContainer = document.getElementById('container');
 
 let dockedStation = null;
-let bulletObjArray = {};
+let playerBulletObjArray = {};
+let npcBulletObjArray = {};
 
 
+class _ship{
+    constructor(ship){
+        this.name=ship.name;
+        this.img=ship.img;
+        this.width=ship.width;
+        this.height=ship.height;
+        this.maxSpeed=ship.maxSpeed;
+        this.accel=ship.accel;
+        this.energy=ship.energy;
+        this.maxEnergy=ship.maxEnergy;
+        this.shield=ship.shield;
+        this.maxShield=ship.maxShield;
+        this.hull=ship.hull;
+        this.maxHull=ship.maxHull;
+        this.maxWeaponHardpoints=ship.maxWeaponHardpoints;
+        this.weaponHardpoints=ship.weaponHardpoints;
+        this.maxCargo=ship.maxCargo;
+        this.cargo=ship.cargo;
+        this.value=ship.value;
+    }
+}
 
 
 class _gameObject {
@@ -48,6 +70,10 @@ class _player extends _gameObject {
         this.sprite = this.ship.img;
         this.width = this.ship.width;
         this.height = this.ship.height;
+        this.timeFiredBullet = [];
+        for (let i = 0; i < this.ship.maxWeaponHardpoints; i++) {
+            this.timeFiredBullet.push(Date.now());
+        };
         this.credits = 0;
         this.oreCount = {
             iron: 0,
@@ -73,7 +99,7 @@ class _player extends _gameObject {
     updatePlayer(dt) {
         this.posXY[0] += this.veloXY[0] * dt;
         this.posXY[1] -= this.veloXY[1] * dt;
-        //      this.dispXY = this.posXY;
+        this.rechargeShield(dt);
     }
     acceleratePlayer(dt) {
         this.veloXY[0] += Math.sin(toRad(this.angle)) * this.ship.accel * dt;
@@ -84,18 +110,16 @@ class _player extends _gameObject {
         this.veloXY[1] -= Math.cos(toRad(this.angle)) * this.ship.accel * dt;
     }
     shootBullet(now) {
-        console.log(now);
-
-        if (now - timeFiredBullet > this.ship.weaponHardpoints[0].rateOfFire) {
-            timeFiredBullet = Date.now();
+        if (now - this.timeFiredBullet[0] > this.ship.weaponHardpoints[0].rateOfFire) {
+            this.timeFiredBullet[0] = Date.now();
             let bullet = new _bullet(this.posXY[0], this.posXY[1], 'bullet', `bullet${gameTime}`, this.ship.weaponHardpoints[0].bullet, [], [], this.angle);
             bullet.veloXY[0] = player.veloXY[0] + Math.sin(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
             bullet.veloXY[1] = player.veloXY[1] + Math.cos(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
-            bulletObjArray[bullet.id] = bullet;
+            playerBulletObjArray[bullet.id] = bullet;
             setTimeout(function () {
-                if (bulletObjArray[bullet.id]) {
-                    bulletObjArray[bullet.id];
-                    delete bulletObjArray[bullet.id];
+                if (playerBulletObjArray[bullet.id]) {
+                    playerBulletObjArray[bullet.id];
+                    delete playerBulletObjArray[bullet.id];
                 }
             }, 10000)
 
@@ -103,8 +127,12 @@ class _player extends _gameObject {
 
 
     }
+    rechargeShield(dt){
+        if (player.ship.shield<player.ship.maxShield){
+            player.ship.shield++;
+        }
+    }
     pickUpOre() {
-        console.log('trying to pick up');
         for (const ore in oreList) {
             if (player.posXY[0] >= oreList[ore].posXY[0] - 50 &&
                 player.posXY[0] <= oreList[ore].posXY[0] + 50 &&
@@ -114,7 +142,6 @@ class _player extends _gameObject {
                 if (player.ship.cargo.length < player.ship.maxCargo) {
                     player.ship.cargo.push(oreList[ore]);
                     delete oreList[ore];
-                    console.log(player.ship.cargo)
                 } else {
                     console.log('cargo is full!!')
                 }
@@ -176,6 +203,9 @@ class _asteroid extends _gameObject {
         this.ores = this.sprite.ores;
         this.width = this.sprite.width;
         this.height = this.sprite.height;
+        this.ship = this.sprite;
+        this.ship.shield = this.sprite.shield;
+        this.ship.hull=this.sprite.hull;
         this.hull = this.sprite.hull;
         this.sprite = this.sprite.img;
     }
@@ -232,45 +262,51 @@ class _enemy extends _gameObject {
         this.sprite = this.ship.img;
         this.width = this.ship.width;
         this.height = this.ship.height;
+        this.ship.shield = 0;
+        this.ship.hull = this.ship.hull;
+        this.timeFiredBullet = [];
+        for (let i = 0; i < this.ship.maxWeaponHardpoints; i++) {
+            this.timeFiredBullet.push(Date.now());
+        };
     }
-    followPlayer(dt,now){
-        let relativeAngle = Math.floor(findAngle(this,player));
-        if (relativeAngle > this.angle + 2){
-            this.angle+=3;
-        } else if (relativeAngle < this.angle){
-            this.angle-=3;
+    followPlayer(dt, now) {
+        let relativeAngle = Math.floor(findAngle(this, player));
+        if (relativeAngle > this.angle + 2) {
+            this.angle += 3;
+        } else if (relativeAngle < this.angle) {
+            this.angle -= 3;
         }
-        let distance = findDistance(this,player);
-        if (distance > 100){
+        let distance = findDistance(this, player);
+        if (distance > 100) {
             this.accelerate(dt)
         } else {
             this.deccelerate(dt)
         }
-        if (distance < 300 && this.angle+2 > relativeAngle && this.angle-2<relativeAngle){
- //       console.log('firing solution found');
-        this.shootBullet(now)
+        if (distance < 300 && this.angle + 2 > relativeAngle && this.angle - 2 < relativeAngle) {
+            //       console.log('firing solution found');
+            this.shootBullet(now)
         }
     }
     accelerate(dt) {
-        this.veloXY[0] += Math.sin(toRad(this.angle)) * this.ship.accel/10 * dt;
-        this.veloXY[1] += Math.cos(toRad(this.angle)) * this.ship.accel/10 * dt;
+        this.veloXY[0] += Math.sin(toRad(this.angle)) * this.ship.accel / 10 * dt;
+        this.veloXY[1] += Math.cos(toRad(this.angle)) * this.ship.accel / 10 * dt;
     }
     deccelerate(dt) {
-        this.veloXY[0] -= Math.sin(toRad(this.angle)) * this.ship.accel/10 * dt;
-        this.veloXY[1] -= Math.cos(toRad(this.angle)) * this.ship.accel/10 * dt;
+        this.veloXY[0] -= Math.sin(toRad(this.angle)) * this.ship.accel / 10 * dt;
+        this.veloXY[1] -= Math.cos(toRad(this.angle)) * this.ship.accel / 10 * dt;
     }
     shootBullet(now) {
-    //    console.log(now);
-        if (now - timeFiredBullet > this.ship.weaponHardpoints[0].rateOfFire) {
-            timeFiredBullet = Date.now();
+        //    console.log(now);
+        if (now - this.timeFiredBullet[0] > this.ship.weaponHardpoints[0].rateOfFire) {
+            this.timeFiredBullet[0] = Date.now();
             let bullet = new _bullet(this.posXY[0], this.posXY[1], 'bullet', `bullet${gameTime}`, this.ship.weaponHardpoints[0].bullet, [], [], this.angle);
-            bullet.veloXY[0] = player.veloXY[0] + Math.sin(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
-            bullet.veloXY[1] = player.veloXY[1] + Math.cos(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
-            bulletObjArray[bullet.id] = bullet;
+            bullet.veloXY[0] = this.veloXY[0] + Math.sin(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
+            bullet.veloXY[1] = this.veloXY[1] + Math.cos(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
+            npcBulletObjArray[bullet.id] = bullet;
             setTimeout(function () {
-                if (bulletObjArray[bullet.id]) {
-                    bulletObjArray[bullet.id];
-                    delete bulletObjArray[bullet.id];
+                if (npcBulletObjArray[bullet.id]) {
+                    npcBulletObjArray[bullet.id];
+                    delete npcBulletObjArray[bullet.id];
                 }
             }, 10000)
 
@@ -297,27 +333,23 @@ class _bullet extends _gameObject {
 
 
 
-const playerBoundary = (dt) => {
-    if (player.posXY[0] < -350) {
-        player.posXY[0] = 5350;
-        visibleObject();
+const objBoundary = (obj) => {
+    if (obj.posXY[0] < -350) {
+        obj.posXY[0] = 5350;
     };
-    if (player.posXY[0] > 5350) {
-        player.posXY[0] = -350;
-        visibleObject();
+    if (obj.posXY[0] > 5350) {
+        obj.posXY[0] = -350;
     };
-    if (player.posXY[1] < -350) {
-        player.posXY[1] = 5350;
-        visibleObject();
+    if (obj.posXY[1] < -350) {
+        obj.posXY[1] = 5350;
     };
-    if (player.posXY[1] > 5350) {
-        player.posXY[1] = -350;
-        visibleObject();
+    if (obj.posXY[1] > 5350) {
+        obj.posXY[1] = -350;
     };
 
 }
 
-const checkMaxSpeed = (obj,dt) => {
+const checkMaxSpeed = (obj, dt) => {
     if (obj.veloXY[0] < -obj.ship.maxSpeed) {
         obj.veloXY[0] += 2 * obj.ship.accel * dt
     };
@@ -363,18 +395,23 @@ const main = () => {
 
 let gameTime = Date.now();
 
+
 const update = (dt, now) => {
     gameTime += dt;
+    visibleObject();
 
     userInputListener(dt, now);
-    updateEntities(dt,now)
-    collisionDetection(dt);
+    updateEntities(dt, now)
+    asteroidCollisionDetection(dt);
+    collisionDetection(playerBulletObjArray,enemyArray,dt);
+    collisionDetection(npcBulletObjArray,player,dt);
+    collisionDetection(npcBulletObjArray,visibleAsteroids,dt);
 }
 
-function updateEntities(dt,now) {
+function updateEntities(dt, now) {
     player.updatePlayer(dt);
-    playerBoundary(dt);
-    checkMaxSpeed(player,dt);
+    objBoundary(player);
+    checkMaxSpeed(player, dt);
 
     for (let asteroid in asteroidList) {
         asteroidList[asteroid].updateObject(dt);
@@ -382,22 +419,27 @@ function updateEntities(dt,now) {
     for (let ore in oreList) {
         oreList[ore].updateObject(dt);
     }
-    for (let bullet in bulletObjArray) {
-        bulletObjArray[bullet].updateObject(dt);
+    for (let bullet in playerBulletObjArray) {
+        playerBulletObjArray[bullet].updateObject(dt);
+    }
+    for (let bullet in npcBulletObjArray) {
+        npcBulletObjArray[bullet].updateObject(dt);
     }
     for (let station in spaceStationArray) {
         spaceStationArray[station].updateObject(dt)
     }
     for (let enemy in enemyArray) {
-        enemyArray[enemy].followPlayer(dt,now);
-        checkMaxSpeed(enemyArray[enemy],dt);
+        enemyArray[enemy].followPlayer(dt, now);
+        checkMaxSpeed(enemyArray[enemy], dt);
         enemyArray[enemy].updateObject(dt);
+        objBoundary(enemyArray[enemy]);
+
     }
 }
 
 const render = () => {
     minimapUpdate();
-
+    playerDetailUpdate();
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let station in spaceStationArray) {
@@ -410,8 +452,11 @@ const render = () => {
     for (let ore in oreList) {
         oreList[ore].renderObject();
     };
-    for (let bullet in bulletObjArray) {
-        bulletObjArray[bullet].renderObject();
+    for (let bullet in playerBulletObjArray) {
+        playerBulletObjArray[bullet].renderObject();
+    };
+    for (let bullet in npcBulletObjArray) {
+        npcBulletObjArray[bullet].renderObject();
     };
     for (let enemy in enemyArray) {
         enemyArray[enemy].renderObject();
@@ -419,7 +464,7 @@ const render = () => {
 }
 
 
-let player = new _player(2500, 2500, 'player', 'player1', ships[0], [300, 300])
+let player = new _player(2500, 2500, 'player', 'player1', new _ship(ships[0]), [300, 300])
 player.credits = 10000;
 // let image = new Image();
 // image.src = player.ship.img;

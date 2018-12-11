@@ -12,32 +12,84 @@ const visibleObject = () => {
         }
     } //sconsole.log(Object.keys(visibleAsteroids).length)
 }
-
 setInterval(visibleObject, 500);
 
-const collisionDetection = (dt) => {
-    for (bullet in bulletObjArray) {
+const asteroidCollisionDetection = (dt) => {
+    for (bullet in playerBulletObjArray) {
         for (asteroid in visibleAsteroids) {
-            if (bulletObjArray[bullet].posXY[0] + bulletObjArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
-                bulletObjArray[bullet].posXY[0] <= asteroidList[asteroid].posXY[0] + asteroidList[asteroid].width &&
-                bulletObjArray[bullet].posXY[1] + bulletObjArray[bullet].height >= asteroidList[asteroid].posXY[1] &&
-                bulletObjArray[bullet].posXY[1] <= asteroidList[asteroid].posXY[1] + asteroidList[asteroid].height) {
-                asteroidList[asteroid].hull -= bulletObjArray[bullet].damage;
-                delete bulletObjArray[bullet];
+            if (playerBulletObjArray[bullet].posXY[0] + playerBulletObjArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
+                playerBulletObjArray[bullet].posXY[0] <= asteroidList[asteroid].posXY[0] + asteroidList[asteroid].width &&
+                playerBulletObjArray[bullet].posXY[1] + playerBulletObjArray[bullet].height >= asteroidList[asteroid].posXY[1] &&
+                playerBulletObjArray[bullet].posXY[1] <= asteroidList[asteroid].posXY[1] + asteroidList[asteroid].height) {
+                asteroidList[asteroid].hull -= playerBulletObjArray[bullet].damage;
+                delete playerBulletObjArray[bullet];
                 if (asteroidList[asteroid].hull <= 0) {
                     asteroidList[asteroid].spawnOres(dt);
                     delete asteroidList[asteroid];
                     delete visibleAsteroids[asteroid];
-
-   //                 console.log(Object.keys(asteroidList).length)
                 };
-
-
-
                 break;
-                //          console.log(asteroidList[asteroid].hp);
-
             }
+        }
+    }
+}
+const collisionDetection = (bulletArray, targetArray, dt) => {
+    for (let bullet in bulletArray) {
+        if (targetArray instanceof Array||targetArray == visibleAsteroids) {
+            for (let target in targetArray) {
+                if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= targetArray[target].posXY[0] &&
+                    bulletArray[bullet].posXY[0] <= targetArray[target].posXY[0] + targetArray[target].width &&
+                    bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= targetArray[target].posXY[1] &&
+                    bulletArray[bullet].posXY[1] <= targetArray[target].posXY[1] + targetArray[target].height) {
+                    if (targetArray[target].ship.shield > bulletArray[bullet].damage) {
+                        targetArray[target].ship.shield -= bulletArray[bullet].damage;
+                    } else if (targetArray[target].ship.shield > 0) {
+                        targetArray[target].ship.shield = 0;
+
+                    } else {
+                        if (bulletArray == npcBulletObjArray && targetArray == visibleAsteroids) {
+                        } else {
+                            targetArray[target].ship.hull -= bulletArray[bullet].damage;
+                        }
+                    };
+                    delete bulletArray[bullet];
+                    if (targetArray[target].ship.hull <= 0) {
+                        delete targetArray[target];
+                    };
+                    break;
+                }
+            }
+        } else {
+            if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= targetArray.posXY[0] &&
+                bulletArray[bullet].posXY[0] <= targetArray.posXY[0] + targetArray.width &&
+                bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= targetArray.posXY[1] &&
+                bulletArray[bullet].posXY[1] <= targetArray.posXY[1] + targetArray.height) {
+                if (targetArray.ship.shield > bulletArray[bullet].damage) {
+                    targetArray.ship.shield -= bulletArray[bullet].damage;
+                    console.log(targetArray.ship.shield)
+                } else if (targetArray.ship.shield > 0) {
+                    let shieldPenetration = bulletArray[bullet].damage - targetArray.ship.shield;
+                    targetArray.ship.shield = 0;
+                    targetArray.ship.hull -= shieldPenetration;
+                    console.log(targetArray.ship.shield)
+
+                } else {
+                    targetArray.ship.hull -= bulletArray[bullet].damage;
+                    console.log(targetArray.ship.hull)
+
+                };
+                delete bulletArray[bullet];
+                if (targetArray.ship.hull <= 0) {
+                    if (targetArray == player) {
+                        targetArray.ship.hull = 0;
+                        console.log('you died')
+
+                    }
+
+                };
+                break;
+            }
+
         }
     }
 }
