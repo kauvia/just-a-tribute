@@ -14,15 +14,15 @@ const visibleObject = () => {
 }
 setInterval(visibleObject, 500);
 
-const asteroidCollisionDetection = (dt) => {
-    for (bullet in playerBulletObjArray) {
+const asteroidCollisionDetection = (bulletArray, dt) => {
+    for (bullet in bulletArray) {
         for (asteroid in visibleAsteroids) {
-            if (playerBulletObjArray[bullet].posXY[0] + playerBulletObjArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
-                playerBulletObjArray[bullet].posXY[0] <= asteroidList[asteroid].posXY[0] + asteroidList[asteroid].width &&
-                playerBulletObjArray[bullet].posXY[1] + playerBulletObjArray[bullet].height >= asteroidList[asteroid].posXY[1] &&
-                playerBulletObjArray[bullet].posXY[1] <= asteroidList[asteroid].posXY[1] + asteroidList[asteroid].height) {
-                asteroidList[asteroid].hull -= playerBulletObjArray[bullet].damage;
-                delete playerBulletObjArray[bullet];
+            if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
+                bulletArray[bullet].posXY[0] <= asteroidList[asteroid].posXY[0] + asteroidList[asteroid].width &&
+                bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= asteroidList[asteroid].posXY[1] &&
+                bulletArray[bullet].posXY[1] <= asteroidList[asteroid].posXY[1] + asteroidList[asteroid].height) {
+                asteroidList[asteroid].hull -= bulletArray[bullet].damage;
+                delete bulletArray[bullet];
                 if (asteroidList[asteroid].hull <= 0) {
                     asteroidList[asteroid].spawnOres(dt);
                     delete asteroidList[asteroid];
@@ -35,7 +35,7 @@ const asteroidCollisionDetection = (dt) => {
 }
 const collisionDetection = (bulletArray, targetArray, dt) => {
     for (let bullet in bulletArray) {
-        if (targetArray instanceof Array||targetArray == visibleAsteroids) {
+        if (targetArray instanceof Array || targetArray == visibleAsteroids) {
             for (let target in targetArray) {
                 if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= targetArray[target].posXY[0] &&
                     bulletArray[bullet].posXY[0] <= targetArray[target].posXY[0] + targetArray[target].width &&
@@ -47,13 +47,23 @@ const collisionDetection = (bulletArray, targetArray, dt) => {
                         targetArray[target].ship.shield = 0;
 
                     } else {
-                        if (bulletArray == npcBulletObjArray && targetArray == visibleAsteroids) {
-                        } else {
-                            targetArray[target].ship.hull -= bulletArray[bullet].damage;
-                        }
+                        targetArray[target].ship.hull -= bulletArray[bullet].damage;
+
                     };
                     delete bulletArray[bullet];
                     if (targetArray[target].ship.hull <= 0) {
+                        if (bulletArray == playerBulletObjArray) {
+                            if (targetArray == traderArray || targetArray == policeArray) {
+                                console.log('u attked friendly ship');
+                                player.karma += 100;
+                            } else if (targetArray == pirateArray || targetArray == raiderArray) {
+                                if (player.karma > 50) {
+                                    player.karma -= 50
+                                } else {
+                                    player.karma = 0
+                                }
+                            }
+                        }
                         delete targetArray[target];
                     };
                     break;
@@ -82,7 +92,7 @@ const collisionDetection = (bulletArray, targetArray, dt) => {
                 if (targetArray.ship.hull <= 0) {
                     if (targetArray == player) {
                         targetArray.ship.hull = 0;
-                        console.log('you died')
+                        //                       console.log('you died')
 
                     }
 

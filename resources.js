@@ -27,7 +27,7 @@ const weapons = [{
     name: 'pea shooter',
     img: 'images/bullet1.png',
     bullet: bullets[0],
-    bulletVelocity: 400,
+    bulletVelocity: 600,
     rateOfFire: 500,
     value: 1000,
 
@@ -266,18 +266,21 @@ const asteroids = [{
 
 const spaceStations = [{
     name: 'Jilted',
+    mapImg: 'images/station1.png',
     img: 'images/station1.png',
     width: 256,
     height: 256,
 
 }, {
     name: 'Caldera',
+    mapImg: 'images/station1.png',
     img: 'images/station1.png',
     width: 256,
     height: 256,
 
 }, {
     name: 'Minotaur',
+    mapImg: 'images/skullcross.png',
     img: 'images/station1.png',
     width: 256,
     height: 256,

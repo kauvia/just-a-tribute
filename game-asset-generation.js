@@ -55,25 +55,54 @@ resources.onReady(startGame);
 
 const enemyArray = [];
 
-const generateEnemy = (num) => {
-    for (let i = 0; i < num; i++){
-        let enemy = new _enemy(2400+ranN(300),2300+ranN(300),'enemy',`enemy${num}`,new _ship(ships[ranN(8)]),[]);
-        enemy.angle=ranN(360);
-        enemyArray.push(enemy);
+const generateEnemy = (array, num, type, x0, width, y0, height) => {
+    for (let i = 0; i < num; i++) {
+        let shipNum = 0;
+        switch (type) {
+            case 'pirate':
+                shipNum = ranN(3) + 1;
+                break;
+            case 'raider':
+                shipNum = ranN(2) + 2;
+                break;
+            case 'trader':
+                shipNum = ranN(3) + 5;
+                break;
+            case 'police':
+                shipNum = 4;
+                break;
+        }
+        let enemy = new _enemy(x0 + ranN(width), y0 + ranN(height), type, type + num, new _ship(ships[shipNum]), []);
+        enemy.angle = ranN(360);
+        array.push(enemy);
     }
 }
-generateEnemy(3);
+generateEnemy(pirateArray, 20, 'pirate', 0, 5000, 0, 5000);
+generateEnemy(raiderArray, 10, 'raider', 0, 5000, 0, 5000);
+generateEnemy(traderArray, 80, 'trader', 0, 5000, 0, 5000);
+generateEnemy(policeArray, 40, 'police', 0, 5000, 0, 5000);
 
-const findAngle = (obj1,obj2)=>{
-    let angle = Math.atan2(obj2.posXY[1]-obj1.posXY[1],obj2.posXY[0]-obj1.posXY[0]);
-    angle = angle *180/Math.PI;
+const findAngle = (obj1, obj2) => {
+    let angle = Math.atan2(obj2.posXY[1] - obj1.posXY[1], obj2.posXY[0] - obj1.posXY[0]);
+    angle = angle * 180 / Math.PI;
     angle += 90;
-    if (angle < 0){
+    if (angle < 0) {
         angle += 360;
     }
-return angle}
+    return angle
+}
 
-const findDistance =(obj1,obj2)=>{
-    let distance = Math.sqrt((Math.pow(obj1.posXY[0]-obj2.posXY[0],2))+(Math.pow(obj1.posXY[1]-obj2.posXY[1],2)));
+const findDistance = (obj1, obj2) => {
+    let distance = Math.sqrt((Math.pow(obj1.posXY[0] - obj2.posXY[0], 2)) + (Math.pow(obj1.posXY[1] - obj2.posXY[1], 2)));
     return distance;
+}
+
+const findRelativeVelocity = (obj1, obj2) => {
+    let relativeVelocity = obj1.veloXY[0] - obj2.veloXY[0] + obj1.veloXY[1] - obj2.veloXY[1];
+    if (relativeVelocity < 0) {
+        relativeVelocity = -Math.sqrt((Math.pow(obj1.veloXY[0] - obj2.veloXY[0], 2)) + (Math.pow(obj1.veloXY[1] - obj2.veloXY[1], 2)));
+    } else {
+        relativeVelocity = Math.sqrt((Math.pow(obj1.veloXY[0] - obj2.veloXY[0], 2)) + (Math.pow(obj1.veloXY[1] - obj2.veloXY[1], 2)));
+    }
+    return relativeVelocity;
 }

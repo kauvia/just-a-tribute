@@ -4,28 +4,38 @@ const gameContainer = document.getElementById('container');
 
 let dockedStation = null;
 let playerBulletObjArray = {};
-let npcBulletObjArray = {};
+
+let pirateArray = [];
+let raiderArray = [];
+let traderArray = [];
+let policeArray = [];
+
+let pirateBulletArray = {};
+let raiderBulletArray = {};
+let traderBulletArray = {};
+let policeBulletArray = {};
 
 
-class _ship{
-    constructor(ship){
-        this.name=ship.name;
-        this.img=ship.img;
-        this.width=ship.width;
-        this.height=ship.height;
-        this.maxSpeed=ship.maxSpeed;
-        this.accel=ship.accel;
-        this.energy=ship.energy;
-        this.maxEnergy=ship.maxEnergy;
-        this.shield=ship.shield;
-        this.maxShield=ship.maxShield;
-        this.hull=ship.hull;
-        this.maxHull=ship.maxHull;
-        this.maxWeaponHardpoints=ship.maxWeaponHardpoints;
-        this.weaponHardpoints=ship.weaponHardpoints;
-        this.maxCargo=ship.maxCargo;
-        this.cargo=ship.cargo;
-        this.value=ship.value;
+
+class _ship {
+    constructor(ship) {
+        this.name = ship.name;
+        this.img = ship.img;
+        this.width = ship.width;
+        this.height = ship.height;
+        this.maxSpeed = ship.maxSpeed;
+        this.accel = ship.accel;
+        this.energy = ship.energy;
+        this.maxEnergy = ship.maxEnergy;
+        this.shield = ship.shield;
+        this.maxShield = ship.maxShield;
+        this.hull = ship.hull;
+        this.maxHull = ship.maxHull;
+        this.maxWeaponHardpoints = ship.maxWeaponHardpoints;
+        this.weaponHardpoints = ship.weaponHardpoints;
+        this.maxCargo = ship.maxCargo;
+        this.cargo = ship.cargo;
+        this.value = ship.value;
     }
 }
 
@@ -75,6 +85,7 @@ class _player extends _gameObject {
             this.timeFiredBullet.push(Date.now());
         };
         this.credits = 0;
+        this.karma = 0;
         this.oreCount = {
             iron: 0,
             copper: 0,
@@ -100,6 +111,10 @@ class _player extends _gameObject {
         this.posXY[0] += this.veloXY[0] * dt;
         this.posXY[1] -= this.veloXY[1] * dt;
         this.rechargeShield(dt);
+        if (this.karma >0){
+            this.karma -=dt;
+            console.log(this.karma)
+        }
     }
     acceleratePlayer(dt) {
         this.veloXY[0] += Math.sin(toRad(this.angle)) * this.ship.accel * dt;
@@ -127,8 +142,8 @@ class _player extends _gameObject {
 
 
     }
-    rechargeShield(dt){
-        if (player.ship.shield<player.ship.maxShield){
+    rechargeShield(dt) {
+        if (player.ship.shield < player.ship.maxShield) {
             player.ship.shield++;
         }
     }
@@ -142,6 +157,7 @@ class _player extends _gameObject {
                 if (player.ship.cargo.length < player.ship.maxCargo) {
                     player.ship.cargo.push(oreList[ore]);
                     delete oreList[ore];
+                    updateCreditCargoDisp();
                 } else {
                     console.log('cargo is full!!')
                 }
@@ -179,19 +195,22 @@ class _player extends _gameObject {
     };
     enterStation() {
         for (let station in spaceStationArray) {
-            if (player.posXY[0] >= spaceStationArray[station].posXY[0] - spaceStationArray[station].width / 2 &&
-                player.posXY[0] <= spaceStationArray[station].posXY[0] + spaceStationArray[station].width / 2 &&
-                player.posXY[1] >= spaceStationArray[station].posXY[1] - spaceStationArray[station].height / 2 &&
-                player.posXY[1] <= spaceStationArray[station].posXY[1] + spaceStationArray[station].height / 2
-            ) {
-                dockedStation = spaceStationArray[station];
-                for (let ore in oreTradeList) {
-                    oreTradeList[ore].updateStocks(dockedStation)
-                }
-                updateCreditCargoDisp();
-                stationContainer.style.display = 'block';
-                pauseGame();
+            let relativeVelocity = Math.abs(findRelativeVelocity(player, spaceStationArray[0]));
+            if (relativeVelocity < 50) {
+                if (player.posXY[0] >= spaceStationArray[station].posXY[0] - spaceStationArray[station].width / 2 &&
+                    player.posXY[0] <= spaceStationArray[station].posXY[0] + spaceStationArray[station].width / 2 &&
+                    player.posXY[1] >= spaceStationArray[station].posXY[1] - spaceStationArray[station].height / 2 &&
+                    player.posXY[1] <= spaceStationArray[station].posXY[1] + spaceStationArray[station].height / 2
+                ) {
+                    dockedStation = spaceStationArray[station];
+                    for (let ore in oreTradeList) {
+                        oreTradeList[ore].updateStocks(dockedStation)
+                    }
+                    updateCreditCargoDisp();
+                    stationContainer.style.display = 'block';
+                    pauseGame();
 
+                }
             }
         }
     };
@@ -203,9 +222,6 @@ class _asteroid extends _gameObject {
         this.ores = this.sprite.ores;
         this.width = this.sprite.width;
         this.height = this.sprite.height;
-        this.ship = this.sprite;
-        this.ship.shield = this.sprite.shield;
-        this.ship.hull=this.sprite.hull;
         this.hull = this.sprite.hull;
         this.sprite = this.sprite.img;
     }
@@ -268,8 +284,121 @@ class _enemy extends _gameObject {
         for (let i = 0; i < this.ship.maxWeaponHardpoints; i++) {
             this.timeFiredBullet.push(Date.now());
         };
+        if (this.type == 'pirate') {
+            this.targetStation = spaceStationArray[2];
+            this.patrolPoint = {
+                posXY: [4200 + ranN(800), 4200 + ranN(800)],
+
+            }
+        } else {
+            this.patrolPoint = {
+                posXY: [ranN(5000), ranN(5000)],
+
+            };
+            this.targetStation = spaceStationArray[ranN(3)];
+
+        };
     }
-    followPlayer(dt, now) {
+    updateEnemy(dt, now) {
+        switch (this.type) {
+            case 'pirate':
+                this.patrolPirateStation(dt, now);
+                break;
+            case 'raider':
+                this.raidPlayer(dt,now);
+                break;
+            case 'trader':
+                this.tradeRun(dt, now);
+                break;
+            case 'police':
+                this.patrolMap(dt, now);
+                break;
+        }
+    }
+
+    tradeRun(dt) {
+        let distance = findDistance(this, this.targetStation);
+        let relativeVelocity = findRelativeVelocity(this, this.targetStation);
+        let relativeAngle = Math.floor(findAngle(this, this.targetStation));
+        if (relativeAngle > this.angle + 2) {
+            this.angle += 3;
+        } else if (relativeAngle < this.angle) {
+            this.angle -= 3;
+        };
+        if (distance > 100) {
+            if (distance > 600) {
+                this.accelerate(dt)
+            } else if (distance < 600 && relativeVelocity > 50) {
+                this.deccelerate(dt);
+
+            } else {
+                this.accelerate(dt)
+            }
+        } else if (distance < 100) {
+            if (relativeVelocity > 20) {
+                this.deccelerate(dt)
+            } else if (relativeVelocity < -20) {
+                this.accelerate(dt)
+            }
+        };
+        if (distance < 50 && Math.abs(relativeVelocity) < 30) {
+            this.veloXY = [0, 0];
+            this.targetStation = spaceStationArray[ranN(3)];
+        }
+    }
+    patrolMap(dt, now) {
+        let playerDistance = findDistance(this, player);
+        if (playerDistance < 1000 && player.karma >= 100) {
+            this.engagePlayer(dt,now)
+        } else {
+            let distance = findDistance(this, this.patrolPoint);
+            let relativeAngle = Math.floor(findAngle(this, this.patrolPoint));
+            if (relativeAngle > this.angle + 2) {
+                this.angle += 3;
+            } else if (relativeAngle < this.angle) {
+                this.angle -= 3;
+            };
+            if (distance > 600) {
+                this.accelerate(dt)
+            } else {
+                this.patrolPoint = {
+                    posXY: [ranN(5000), ranN(5000)]
+                };
+
+            }
+        }
+    }
+    raidPlayer(dt,now){
+        if (player.ship.cargo.length>0){
+            this.engagePlayer(dt,now)
+        } else {
+            this.patrolMap(dt,now)
+        }
+    }
+    patrolPirateStation(dt, now) {
+        let playerToStationDistance = findDistance(this, this.targetStation);
+        if (playerToStationDistance < 1000) {
+            this.engagePlayer(dt, now)
+        } else {
+
+            let distance = findDistance(this, this.patrolPoint);
+            let relativeAngle = Math.floor(findAngle(this, this.patrolPoint));
+            if (relativeAngle > this.angle + 2) {
+                this.angle += 3;
+            } else if (relativeAngle < this.angle) {
+                this.angle -= 3;
+            };
+            if (distance > 600) {
+                this.accelerate(dt)
+            } else {
+                this.patrolPoint = {
+                    posXY: [4200 + ranN(800), 4200 + ranN(800)]
+                };
+
+            }
+        }
+    }
+    engagePlayer(dt, now) {
         let relativeAngle = Math.floor(findAngle(this, player));
         if (relativeAngle > this.angle + 2) {
             this.angle += 3;
@@ -277,14 +406,27 @@ class _enemy extends _gameObject {
             this.angle -= 3;
         }
         let distance = findDistance(this, player);
-        if (distance > 100) {
+        if (distance > 100 && this.angle + 30 > relativeAngle && this.angle - 30 < relativeAngle) {
             this.accelerate(dt)
         } else {
             this.deccelerate(dt)
         }
-        if (distance < 300 && this.angle + 2 > relativeAngle && this.angle - 2 < relativeAngle) {
+        if (distance < 300 && this.angle + 1 > relativeAngle && this.angle - 1 < relativeAngle) {
             //       console.log('firing solution found');
-            this.shootBullet(now)
+            switch (this.type) {
+                case 'pirate':
+                    this.shootBullet(now, pirateBulletArray)
+                    break;
+                case 'raider':
+                    this.shootBullet(now, raiderBulletArray)
+                    break;
+                case 'trader':
+                    this.shootBullet(now, traderBulletArray)
+                    break;
+                case 'police':
+                    this.shootBullet(now, policeBulletArray)
+                    break;
+            }
         }
     }
     accelerate(dt) {
@@ -295,18 +437,18 @@ class _enemy extends _gameObject {
         this.veloXY[0] -= Math.sin(toRad(this.angle)) * this.ship.accel / 10 * dt;
         this.veloXY[1] -= Math.cos(toRad(this.angle)) * this.ship.accel / 10 * dt;
     }
-    shootBullet(now) {
+    shootBullet(now, bulletArray) {
         //    console.log(now);
         if (now - this.timeFiredBullet[0] > this.ship.weaponHardpoints[0].rateOfFire) {
             this.timeFiredBullet[0] = Date.now();
             let bullet = new _bullet(this.posXY[0], this.posXY[1], 'bullet', `bullet${gameTime}`, this.ship.weaponHardpoints[0].bullet, [], [], this.angle);
             bullet.veloXY[0] = this.veloXY[0] + Math.sin(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
             bullet.veloXY[1] = this.veloXY[1] + Math.cos(toRad(this.angle)) * this.ship.weaponHardpoints[0].bulletVelocity;
-            npcBulletObjArray[bullet.id] = bullet;
+            bulletArray[bullet.id] = bullet;
             setTimeout(function () {
-                if (npcBulletObjArray[bullet.id]) {
-                    npcBulletObjArray[bullet.id];
-                    delete npcBulletObjArray[bullet.id];
+                if (bulletArray[bullet.id]) {
+                    bulletArray[bullet.id];
+                    delete bulletArray[bullet.id];
                 }
             }, 10000)
 
@@ -389,6 +531,7 @@ const main = () => {
     }
     lastTime = now;
 
+    //       console.log(findRelativeVelocity(player, spaceStationArray[0]) + 'distance' + findDistance(player, spaceStationArray[0]))
     requestAnimFrame(main);
 
 }
@@ -402,10 +545,28 @@ const update = (dt, now) => {
 
     userInputListener(dt, now);
     updateEntities(dt, now)
-    asteroidCollisionDetection(dt);
-    collisionDetection(playerBulletObjArray,enemyArray,dt);
-    collisionDetection(npcBulletObjArray,player,dt);
-    collisionDetection(npcBulletObjArray,visibleAsteroids,dt);
+    asteroidCollisionDetection(playerBulletObjArray, dt);
+    asteroidCollisionDetection(pirateBulletArray, dt);
+    asteroidCollisionDetection(raiderBulletArray, dt);
+    asteroidCollisionDetection(traderBulletArray, dt);
+    asteroidCollisionDetection(policeBulletArray, dt);
+
+    collisionDetection(playerBulletObjArray, pirateArray, dt);
+    collisionDetection(playerBulletObjArray, raiderArray, dt);
+    collisionDetection(playerBulletObjArray, traderArray, dt);
+    collisionDetection(playerBulletObjArray, policeArray, dt);
+
+    collisionDetection(pirateBulletArray, player, dt);
+    collisionDetection(raiderBulletArray, player, dt);
+    collisionDetection(traderBulletArray, player, dt);
+    collisionDetection(policeBulletArray, player, dt);
+
+    // collisionDetection(pirateBulletArray, visibleAsteroids, dt);
+    // collisionDetection(pirateBulletArray, visibleAsteroids, dt);
+    // collisionDetection(raiderBulletArray, visibleAsteroids, dt);
+    // collisionDetection(traderBulletArray, visibleAsteroids, dt);
+    // collisionDetection(policeBulletArray, visibleAsteroids, dt);
+
 }
 
 function updateEntities(dt, now) {
@@ -419,29 +580,55 @@ function updateEntities(dt, now) {
     for (let ore in oreList) {
         oreList[ore].updateObject(dt);
     }
+    for (let station in spaceStationArray) {
+        spaceStationArray[station].updateObject(dt);
+    }
     for (let bullet in playerBulletObjArray) {
         playerBulletObjArray[bullet].updateObject(dt);
     }
-    for (let bullet in npcBulletObjArray) {
-        npcBulletObjArray[bullet].updateObject(dt);
+    for (let bullet in pirateBulletArray) {
+        pirateBulletArray[bullet].updateObject(dt);
     }
-    for (let station in spaceStationArray) {
-        spaceStationArray[station].updateObject(dt)
+    for (let bullet in raiderBulletArray) {
+        raiderBulletArray[bullet].updateObject(dt);
     }
-    for (let enemy in enemyArray) {
-        enemyArray[enemy].followPlayer(dt, now);
-        checkMaxSpeed(enemyArray[enemy], dt);
-        enemyArray[enemy].updateObject(dt);
-        objBoundary(enemyArray[enemy]);
-
+    for (let bullet in traderBulletArray) {
+        traderBulletArray[bullet].updateObject(dt);
+    }
+    for (let station in policeBulletArray) {
+        policeBulletArray[station].updateObject(dt)
+    }
+    for (let ship in pirateArray) {
+        pirateArray[ship].updateEnemy(dt, now);
+        checkMaxSpeed(pirateArray[ship], dt);
+        pirateArray[ship].updateObject(dt);
+        objBoundary(pirateArray[ship]);
+    }
+    for (let ship in raiderArray) {
+        raiderArray[ship].updateEnemy(dt, now);
+        checkMaxSpeed(raiderArray[ship], dt);
+        raiderArray[ship].updateObject(dt);
+        objBoundary(raiderArray[ship]);
+    }
+    for (let ship in traderArray) {
+        traderArray[ship].updateEnemy(dt, now);
+        checkMaxSpeed(traderArray[ship], dt);
+        traderArray[ship].updateObject(dt);
+        objBoundary(traderArray[ship]);
+    }
+    for (let ship in policeArray) {
+        policeArray[ship].updateEnemy(dt, now);
+        checkMaxSpeed(policeArray[ship], dt);
+        policeArray[ship].updateObject(dt);
+        objBoundary(policeArray[ship]);
     }
 }
 
 const render = () => {
     minimapUpdate();
     playerDetailUpdate();
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+   // ctx.fillStyle = 'black';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let station in spaceStationArray) {
         spaceStationArray[station].renderObject()
     }
@@ -455,11 +642,29 @@ const render = () => {
     for (let bullet in playerBulletObjArray) {
         playerBulletObjArray[bullet].renderObject();
     };
-    for (let bullet in npcBulletObjArray) {
-        npcBulletObjArray[bullet].renderObject();
+    for (let bullet in pirateBulletArray) {
+        pirateBulletArray[bullet].renderObject();
     };
-    for (let enemy in enemyArray) {
-        enemyArray[enemy].renderObject();
+    for (let bullet in raiderBulletArray) {
+        raiderBulletArray[bullet].renderObject();
+    };
+    for (let bullet in traderBulletArray) {
+        traderBulletArray[bullet].renderObject();
+    };
+    for (let bullet in policeBulletArray) {
+        policeBulletArray[bullet].renderObject();
+    };
+    for (let ship in pirateArray) {
+        pirateArray[ship].renderObject();
+    };
+    for (let ship in raiderArray) {
+        raiderArray[ship].renderObject();
+    };
+    for (let ship in traderArray) {
+        traderArray[ship].renderObject();
+    };
+    for (let ship in policeArray) {
+        policeArray[ship].renderObject();
     }
 }
 

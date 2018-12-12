@@ -87,9 +87,13 @@ const minimapStatics = () => {
     //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
     for (let station in spaceStationArray) {
         let stationDisp = document.createElement('img');
-        stationDisp.src = `${spaceStationArray[station].sprite}`;
+        stationDisp.src = `${spaceStations[station].mapImg}`;
         stationDisp.style.height = '20px';
         stationDisp.style.width = '20px';
+        if (stationDisp.src == 'http://localhost:3000/images/skullcross.png') {
+            stationDisp.style.height = '12px';
+            stationDisp.style.width = '16px';
+        }
         stationDisp.style.position = 'absolute';
         stationDisp.style.top = `${spaceStationArray[station].posXY[1]/25+25}px`;
         stationDisp.style.left = `${spaceStationArray[station].posXY[0]/25+25}px`;
