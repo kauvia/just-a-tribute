@@ -1,3 +1,11 @@
+const exhausts = [{
+    name: 'exhaust1',
+    img: 'images/exhaust2.png',
+    width:288,
+    height:16,
+    numberOfFrames:18,
+
+}]
 const bullets = [{
     name: 'pea-shooter-bullet',
     img: 'images/bullet1.png',
@@ -26,18 +34,18 @@ const bullets = [{
 const weapons = [{
     name: 'Pea shooter',
     img: 'images/bullet1.png',
-    id:0,
+    id: 0,
     bullet: bullets[0],
     bulletVelocity: 600,
     rateOfFire: 500,
     energyUsage: 50,
     value: 1000,
-    dissipation:2000,
+    dissipation: 2000,
 
 }, {
     name: 'Rocket launcher',
     img: 'images/rocket1.png',
-    id:1,
+    id: 1,
     bullet: bullets[1],
     bulletVelocity: 400,
     rateOfFire: 300,
@@ -47,7 +55,7 @@ const weapons = [{
 }, {
     name: 'F&F missile launcher',
     img: 'images/missile1.png',
-    id:2,
+    id: 2,
     bullet: bullets[2],
     bulletVelocity: 350,
     rateOfFire: 500,
@@ -58,7 +66,7 @@ const weapons = [{
 }, {
     name: 'C-beam',
     img: 'images/beam1.png',
-    id:3,
+    id: 3,
     bullet: bullets[3],
     bulletVelocity: 2000,
     rateOfFire: 200,
@@ -74,7 +82,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 200,
-    accel: 400,
+    accel: 300,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -94,7 +102,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 200,
-    accel: 400,
+    accel: 300,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -114,7 +122,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 200,
-    accel: 400,
+    accel: 300,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -133,7 +141,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 200,
-    accel: 400,
+    accel: 300,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -153,7 +161,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 250,
-    accel: 500,
+    accel: 400,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -173,7 +181,7 @@ const ships = [{
     width: 30,
     height: 30,
     maxSpeed: 150,
-    accel: 300,
+    accel: 200,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -193,7 +201,7 @@ const ships = [{
     width: 32,
     height: 32,
     maxSpeed: 150,
-    accel: 300,
+    accel: 200,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -213,7 +221,7 @@ const ships = [{
     width: 26,
     height: 32,
     maxSpeed: 150,
-    accel: 300,
+    accel: 200,
     energy: 100,
     maxEnergy: 100,
     shield: 200,
@@ -376,7 +384,10 @@ window.resources.load([
     'images/ironore.png',
     'images/uraniumore.png',
     'images/goldore.png',
-    'images/station1.png'
+    'images/station1.png',
+    'images/exhaust1.png',
+    'images/exhaust2.png',
+
 ])
 
 for (let ship in ships) {

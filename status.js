@@ -93,7 +93,7 @@ const minimapStatics = () => {
         stationDisp.style.height = '20px';
         stationDisp.style.width = '20px';
         if (stationDisp.src == 'http://localhost:3000/images/skullcross.png' ||
-            stationDisp.src == 'https://kauvia.github.io/images/skullcross.png') {
+            stationDisp.src == '/images/skullcross.png') {
             stationDisp.style.height = '12px';
             stationDisp.style.width = '16px';
         }

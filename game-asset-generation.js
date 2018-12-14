@@ -11,11 +11,11 @@ const asteroidFields = [
 ]
 let playerName = 'Traveller';
 let player;
-
 const startGame = () => {
-    playerName = prompt('What is your name?');
-    player = new _player(ranN(1000) + 1000, ranN(1000) + 1000, 'player', playerName, new _ship(ships[0]), [300, 300]);
-    player.credits = 10000;
+ //   playerName = prompt('What is your name?');
+ playerName = 'testing';
+    player = new _player(3500,1500, 'player', playerName, new _ship(ships[0]), [300, 300]);
+    player.credits = 0;
     playerDetailSetup();
     playerElements();
     stationElements();
@@ -28,6 +28,7 @@ const startGame = () => {
     minimapStatics();
     gameTime = Date.now();
     lastTime = Date.now();
+
     requestAnimFrame(main);
 }
 const pauseGame = () => {
@@ -84,7 +85,7 @@ const generateEnemy = (array, num, type, x0, width, y0, height) => {
                 shipNum = 4;
                 break;
         }
-        let enemy = new _enemy(x0 + ranN(width), y0 + ranN(height), type, type + num, new _ship(ships[shipNum]), []);
+        let enemy = new _enemy(x0 + ranN(width), y0 + ranN(height), type,i, new _ship(ships[shipNum]), []);
         enemy.angle = ranN(360);
         array.push(enemy);
     }
@@ -109,7 +110,7 @@ const findDistance = (obj1, obj2) => {
     return distance;
 }
 
-const findRelativeVelocity = (obj1, obj2) => {
+const findRelativeVelocity = (obj1, obj2={veloXY:[0,0]}) => {
     let relativeVelocity = obj1.veloXY[0] - obj2.veloXY[0] + obj1.veloXY[1] - obj2.veloXY[1];
     if (relativeVelocity < 0) {
         relativeVelocity = -Math.sqrt((Math.pow(obj1.veloXY[0] - obj2.veloXY[0], 2)) + (Math.pow(obj1.veloXY[1] - obj2.veloXY[1], 2)));
