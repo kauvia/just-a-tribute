@@ -1,8 +1,7 @@
-let visibleAsteroids = {};
-let oreList = {};
+
 
 const visibleObject = () => {
-    for (asteroid in asteroidList) {
+    for (let asteroid in asteroidList) {
         if (-300 <= asteroidList[asteroid].dispXY[0] && asteroidList[asteroid].dispXY[0] <= 900 &&
             -300 <= asteroidList[asteroid].dispXY[1] && asteroidList[asteroid].dispXY[1] <= 900) {
             visibleAsteroids[asteroidList[asteroid].id] = asteroidList[asteroid];
@@ -10,55 +9,60 @@ const visibleObject = () => {
             delete visibleAsteroids[asteroidList[asteroid].id];
 
         }
-    } //sconsole.log(Object.keys(visibleAsteroids).length)
+    }
 }
 setInterval(visibleObject, 500);
 
 const asteroidCollisionDetection = (bulletArray, dt) => {
-    for (bullet in bulletArray) {
-        for (asteroid in visibleAsteroids) {
-            if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= asteroidList[asteroid].posXY[0] &&
-                bulletArray[bullet].posXY[0] <= asteroidList[asteroid].posXY[0] + asteroidList[asteroid].width &&
-                bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= asteroidList[asteroid].posXY[1] &&
-                bulletArray[bullet].posXY[1] <= asteroidList[asteroid].posXY[1] + asteroidList[asteroid].height) {
-                asteroidList[asteroid].hull -= bulletArray[bullet].damage;
-                if (bulletArray[bullet].bullet.name != 'c-beam'){
-                delete bulletArray[bullet];}
-                if (asteroidList[asteroid].hull <= 0) {
-                    asteroidList[asteroid].spawnOres(dt);
-                    delete asteroidList[asteroid];
-                    delete visibleAsteroids[asteroid];
+    for (let x in bulletArray) {
+        for (let a in visibleAsteroids) {
+            let bullet = bulletArray[x];
+            let asteroid = asteroidList[a];
+            let distance = findDistance(bullet, asteroid);
+            if (distance < asteroid.width / asteroid.numberOfFrames / 2) {
+                asteroid.hull -= bullet.damage;
+                if (bullet.bullet.name != 'c-beam') {
+                    delete bulletArray[x];
+                }
+                if (asteroid.hull <= 0) {
+                    asteroid.spawnOres(dt);
+                    delete asteroidList[a];
+                    delete visibleAsteroids[a];
                 };
                 break;
             }
         }
     }
 }
-const collisionDetection = (bulletArray, targetArray, dt) => {
-    for (let bullet in bulletArray) {
-        if (targetArray instanceof Array || targetArray == visibleAsteroids) {
-            for (let target in targetArray) {
-                if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= targetArray[target].posXY[0] &&
-                    bulletArray[bullet].posXY[0] <= targetArray[target].posXY[0] + targetArray[target].width &&
-                    bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= targetArray[target].posXY[1] &&
-                    bulletArray[bullet].posXY[1] <= targetArray[target].posXY[1] + targetArray[target].height) {
-                    if (targetArray[target].ship.shield > bulletArray[bullet].damage) {
-                        targetArray[target].ship.shield -= bulletArray[bullet].damage;
-                    } else if (targetArray[target].ship.shield > 0) {
-                        targetArray[target].ship.shield = 0;
-
+const collisionDetection = (bulletArray, targetArray) => {
+    for (let x in bulletArray) {
+        for (let ship in targetArray) {
+            let target = targetArray[ship];
+            let bullet = bulletArray[x];
+            if (bullet.owner.type != target.type) {
+                let distance = findDistance(bullet, target);
+                if (distance < target.width / 2 / target.numberOfFrames) {
+                    if (target.ship.shield > bullet.damage) {
+                        target.ship.shield -= bullet.damage;
+                    } else if (target.ship.shield > 0) {
+                        let shieldPenetration = bullet.damage - target.ship.shield;
+                        target.ship.shield = 0;
+                        target.ship.hull -= shieldPenetration;
                     } else {
-                        targetArray[target].ship.hull -= bulletArray[bullet].damage;
-
+                        target.ship.hull -= bullet.damage;
                     };
-                    if (bulletArray[bullet].bullet.name != 'c-beam'){
-                        delete bulletArray[bullet];}
-                    if (targetArray[target].ship.hull <= 0) {
-                        if (bulletArray == playerBulletObjArray) {
-                            if (targetArray == traderArray || targetArray == policeArray) {
+                    if (bullet.bullet.name != 'c-beam') {
+                        delete bulletArray[x];
+                    }
+                    if (target.ship.hull <= 0) {
+                        if (target == player){
+                            gameOver();
+                        }
+                        if (bullet.owner == player) {
+                            if (targetArray == shipArrays['trader'] || targetArray == shipArrays['police']) {
                                 console.log('u attked friendly ship');
                                 player.karma += 100;
-                            } else if (targetArray == pirateArray || targetArray == raiderArray) {
+                            } else if (targetArray == shipArrays['pirate'] || targetArray == shipArrays['raider']) {
                                 if (player.karma > 50) {
                                     player.karma -= 50
                                 } else {
@@ -66,43 +70,11 @@ const collisionDetection = (bulletArray, targetArray, dt) => {
                                 }
                             }
                         }
-                        delete targetArray[target];
+                        delete targetArray[ship];
                     };
                     break;
                 }
             }
-        } else {
-            if (bulletArray[bullet].posXY[0] + bulletArray[bullet].width >= targetArray.posXY[0] &&
-                bulletArray[bullet].posXY[0] <= targetArray.posXY[0] + targetArray.width &&
-                bulletArray[bullet].posXY[1] + bulletArray[bullet].height >= targetArray.posXY[1] &&
-                bulletArray[bullet].posXY[1] <= targetArray.posXY[1] + targetArray.height) {
-                if (targetArray.ship.shield > bulletArray[bullet].damage) {
-                    targetArray.ship.shield -= bulletArray[bullet].damage;
-                    console.log(targetArray.ship.shield)
-                } else if (targetArray.ship.shield > 0) {
-                    let shieldPenetration = bulletArray[bullet].damage - targetArray.ship.shield;
-                    targetArray.ship.shield = 0;
-                    targetArray.ship.hull -= shieldPenetration;
-                    console.log(targetArray.ship.shield)
-
-                } else {
-                    targetArray.ship.hull -= bulletArray[bullet].damage;
-                    console.log(targetArray.ship.hull)
-
-                };
-                delete bulletArray[bullet];
-                if (targetArray.ship.hull <= 0) {
-                    if (targetArray == player) {
-                        targetArray.ship.hull = 0;
-                        gameOver();
-                        //                       console.log('you died')
-
-                    }
-
-                };
-                break;
-            }
-
         }
     }
 }

@@ -98,8 +98,8 @@ const minimapStatics = () => {
             stationDisp.style.width = '16px';
         }
         stationDisp.style.position = 'absolute';
-        stationDisp.style.top = `${spaceStationArray[station].posXY[1]/25+25}px`;
-        stationDisp.style.left = `${spaceStationArray[station].posXY[0]/25+25}px`;
+        stationDisp.style.top = `${spaceStationArray[station].posXY[1]/45}px`;
+        stationDisp.style.left = `${spaceStationArray[station].posXY[0]/45}px`;
         minimapContainer.appendChild(stationDisp);
     }
     for (let asteroid in asteroidList) {
@@ -112,8 +112,8 @@ const minimapStatics = () => {
             asteroidDisp.style.height = '2px';
             asteroidDisp.style.width = '2px';
             asteroidDisp.style.position = 'absolute';
-            asteroidDisp.style.top = `${asteroidList[asteroid].posXY[1]/20}px`;
-            asteroidDisp.style.left = `${asteroidList[asteroid].posXY[0]/20}px`;
+            asteroidDisp.style.top = `${asteroidList[asteroid].posXY[1]/40}px`;
+            asteroidDisp.style.left = `${asteroidList[asteroid].posXY[0]/40}px`;
             minimapContainer.appendChild(asteroidDisp);
         }
     }
@@ -125,8 +125,8 @@ const minimapUpdate = () => {
     playerDisp.style.height = '20px';
     playerDisp.style.width = '20px';
     playerDisp.style.position = 'absolute';
-    playerDisp.style.top = `${player.posXY[1]/25+25}px`;
-    playerDisp.style.left = `${player.posXY[0]/25+25}px`;
+    playerDisp.style.top = `${player.posXY[1]/45}px`;
+    playerDisp.style.left = `${player.posXY[0]/45}px`;
     playerDisp.style.transform = `rotate(${player.angle}deg)`;
     minimapContainer.appendChild(playerDisp);
 }
