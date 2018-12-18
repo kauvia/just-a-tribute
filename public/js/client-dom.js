@@ -1,3 +1,4 @@
+const gameContainer = document.getElementById('container');
 const secondaryContainer = document.getElementById('secondary-container');
 const stationContainer = document.createElement('div');
 const playerContainer = document.createElement('div');
@@ -83,8 +84,6 @@ const updateCreditCargoDisp = () => {
 
 }
 
-
-
 const minimapStatics = () => {
     //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
     for (let station in spaceStationArray) {
@@ -92,8 +91,7 @@ const minimapStatics = () => {
         stationDisp.src = `${spaceStations[station].mapImg}`;
         stationDisp.style.height = '20px';
         stationDisp.style.width = '20px';
-        if (stationDisp.src == 'http://localhost:3000/images/skullcross.png' ||
-            stationDisp.src == '/images/skullcross.png') {
+        if (stationDisp.src == 'images/skullcross.png') {
             stationDisp.style.height = '12px';
             stationDisp.style.width = '16px';
         }
@@ -222,43 +220,62 @@ const dynamicStatusBarUpdate = (display, status, maxStatus) => {
 const menuScreenSetup = () => {
     menuContainer.id = 'menu-container';
     menuContainer.style.backgroundImage = 'url(images/minimap.png)';
-    let buttonsContainer = document.createElement('div');
+    let loginContainer = document.createElement('div');
+    loginContainer.style.marginTop = '20%';
+
     gameContainer.appendChild(menuContainer);
-    menuContainer.appendChild(buttonsContainer);
-    let buttonsGameTitle = document.createElement('div');
-    buttonsGameTitle.style.fontSize = '55px';
-    buttonsGameTitle.style.color = 'antiquewhite';
-    buttonsGameTitle.innerHTML = 'Star Plebe';
-    buttonsContainer.appendChild(buttonsGameTitle);
-    buttonsContainer.style.marginTop = '20%'
-    let buttonArray = ['New Game', 'Load Game', 'Save Game', 'Resume Game', 'Instructions'];
-    for (i = 0; i < buttonArray.length; i++) {
-        let button = document.createElement('button');
-        button.id = `${buttonArray[i]}-button`;
-        button.className = 'button';
-        button.innerHTML = `${buttonArray[i]}`;
-        button.style.width = '80%';
-        button.style.margin = '0 auto';
-        button.style.height = '40px';
-        buttonsContainer.appendChild(button);
-    };
-    let newGameButton = document.getElementById('New Game-button');
-    newGameButton.onclick = startGame;
-    let saveGameButton = document.getElementById('Save Game-button');
-    saveGameButton.onclick = saveGame;
-    saveGameButton.style.display = 'none';
-    let resumeGameButton = document.getElementById('Resume Game-button');
-    resumeGameButton.onclick = () => {
-        resumeGame();
-        menuContainer.style.display = 'none';
+    menuContainer.appendChild(loginContainer);
 
-    };
-    resumeGameButton.style.display = 'none';
+    let gameTitle = document.createElement('div');
+    gameTitle.style.fontSize = '55px';
+    gameTitle.style.color = 'antiquewhite';
+    gameTitle.innerHTML = 'Star Plebe';
+    loginContainer.appendChild(gameTitle);
 
-    let loadGameButton = document.getElementById('Load Game-button');
-    loadGameButton.onclick = loadGame;
-    let instructionButton = document.getElementById('Instructions-button');
+    let loginForm = document.createElement("form");
+    loginForm.style.color = 'white';
+    let usernameText = document.createElement("div");
+    usernameText.innerHTML = "Username: "
+    let usernameInput = document.createElement("input");
+    usernameInput.type = 'text';
+    usernameInput.name = 'username';
+    usernameInput.id = 'username';
+    let passwordText = document.createElement("div");
+    passwordText.innerHTML = "Password: "
+    let passwordInput = document.createElement("input");
+    passwordInput.type = 'password';
+    passwordInput.name = 'password';
+    passwordInput.id = 'password';
+    let newAccountText = document.createElement("div");
+    newAccountText.innerHTML = "New Account?"
+    let newAccountCheckBox = document.createElement("input");
+    newAccountCheckBox.type = 'checkbox';
+    newAccountCheckBox.value = 'new';
+    newAccountCheckBox.id = 'new-account';
+    let loginButton = document.createElement("input");
+    loginButton.type = 'button';
+    loginButton.value = "Log In";
+    loginButton.onclick = loginAction;
+
+    loginForm.appendChild(usernameText)
+    loginForm.appendChild(usernameInput)
+    loginForm.appendChild(passwordText)
+    loginForm.appendChild(passwordInput)
+    loginForm.appendChild(newAccountText)
+    loginForm.appendChild(newAccountCheckBox)
+    loginForm.appendChild(loginButton)
+    loginContainer.appendChild(loginForm)
+
+
+    let instructionButton = document.createElement('button');
+    instructionButton.id = `instruction-button`;
+    instructionButton.className = 'button';
+    instructionButton.innerHTML = `Instruction`;
+    instructionButton.style.width = '40%';
+    instructionButton.style.marginTop = '5px';
+    instructionButton.style.height = '40px';
     instructionButton.onclick = openInstruction;
+    loginContainer.appendChild(instructionButton);
 }
 
 const openInstruction = () => {
@@ -295,11 +312,11 @@ const gameOverSetup = () => {
     gameOverContainer.id = 'game-over-container';
     gameContainer.appendChild(gameOverContainer);
     gameOverContainer.appendChild(gameOverWrapper);
-    gameOverWrapper.style.marginTop ='20%';
-    let restartButton=document.createElement('button');
-    let gameOverText=document.createElement('div');
+    gameOverWrapper.style.marginTop = '20%';
+    let restartButton = document.createElement('button');
+    let gameOverText = document.createElement('div');
     let gameOverTitle = document.createElement('div');
-    gameOverTitle.innerHTML= 'Game Over';
+    gameOverTitle.innerHTML = 'Game Over';
     gameOverTitle.style.fontSize = '55px';
     gameOverTitle.style.color = 'antiquewhite';
     gameOverText.id = 'game-over-text';
@@ -307,19 +324,21 @@ const gameOverSetup = () => {
     gameOverWrapper.appendChild(gameOverText);
     gameOverWrapper.appendChild(restartButton);
     gameOverContainer.style.backgroundImage = 'url(images/minimap.png)';
-    restartButton.innerHTML="Restart Game";
+    restartButton.innerHTML = "Restart Game";
     restartButton.onclick = restartGame;
 }
 
 const gameOver = () => {
     let gameOverText = document.getElementById('game-over-text');
-    if (player.credits <= 0){gameOverText.innerHTML='You died peniless.'
-    } else if (player.karma > 100){
-        gameOverText.innerHTML="You died a villian."
-    } else {gameOver.innerHTML="Pirates hunted you down."};
+    if (player.credits <= 0) {
+        gameOverText.innerHTML = 'You died peniless.'
+    } else if (player.karma > 100) {
+        gameOverText.innerHTML = "You died a villian."
+    } else {
+        gameOver.innerHTML = "Pirates hunted you down."
+    };
     gameOverContainer.style.display = 'block';
     menuContainer.style.display = 'none';
 }
 
 menuScreenSetup();
-gameOverSetup();
