@@ -2,30 +2,31 @@ const ranN = (num) => Math.floor(Math.random() * num); //return random number fr
 const toRad = (angleInDegree) => angleInDegree * Math.PI / 180;
 const gameContainer = document.getElementById('container');
 
-let playerName = 'Traveller';
-let player;
-let dockedStation = null;
-let isGameRunning = false;
+const asteroidFields = [
+    [150, 0, 1000, 7000, 0, 2000],
+    [150, 600, 2000, 4000, 2000, 2000],
+    [150, 1200, 2000, 3000, 4000, 6000],
+    [150, 1800, 0, 2000, 6000, 4000],
+    [150, 2400, 6000, 2000, 2000, 8000],
+    [150, 3000, 8000, 2000, 3000, 6000]
+]
 
-let bulletObjArray = {};
-
-let shipArrays = {
-    player: [],
-    pirate: [],
-    raider: [],
-    trader: [],
-    police: [],
-    miner: [],
+let dynamicObjArray = {
+    pirate: {},
+    raider: {},
+    trader: {},
+    police: {},
+    miner: {},
+    bullet: {},
+    player: {},
+    asteroid: {},
+    ore: {},
 }
 
-let asteroidList = {};
-let visibleAsteroids = {};
-let oreList = {};
-
-let spaceStationArray = [];
-
-const exhaustArray = {};
-const starArray = [];
+const staticObjArray = {
+    spaceStations: [],
+    stars: []
+}
 
 class _ship {
     constructor(ship) {
@@ -51,8 +52,6 @@ class _ship {
         this.value = ship.value;
     }
 }
-
-
 class _gameObject {
     constructor(posX, posY, type, id, sprite, dispXY = [0, 0], veloXY = [0, 0], angle = 360) {
         this.posXY = [posX, posY];
@@ -97,55 +96,11 @@ class _gameObject {
         this.sprite = this.sprite.img;
     }
 
-
-    renderSprite() {
-        if (this.active) {
-            ctx.setTransform(1, 0, 0, 1, Math.floor(this.dispXY[0]), Math.floor(this.dispXY[1]))
-
-            if (this.angle != 0 || this.angle != 360) {
-                ctx.rotate(toRad(this.angle));
-            }
-            if (this.numberOfFrames > 1) {
-                ctx.drawImage(resources.get(this.sprite), this.frameIndex * this.width / this.numberOfFrames, 0, this.width / this.numberOfFrames, this.height, -this.width / this.numberOfFrames / 2, -this.height / 2, this.width / this.numberOfFrames, this.height);
-            } else {
-                ctx.drawImage(resources.get(this.sprite),
-                    -this.width / 2, -this.height / 2,
-                    this.width, this.height);
-            }
-            ctx.setTransform(1, 0, 0, 1, 0, 0)
-
-        }
-    }
-    updateSprite(dt) {
-        if (this.numberOfFrames > 1) {
-            this.tickCount++;
-            if (this.tickCount > this.ticksPerFrame) {
-                this.tickCount = 0;
-                if (this.frameIndex + 1 >= this.numberOfFrames) {
-                    this.frameIndex = 0;
-                    if (this.type == 'exhaust') {
-                        delete exhaustArray[this.id];
-                    }
-                } else {
-                    this.frameIndex++
-                }
-            }
-            if (this.frameIndex >= this.numberOfFrames) {}
-        }
-
+    updatePosition(dt) {
         this.posXY[0] += this.veloXY[0] * dt;
         this.posXY[1] -= this.veloXY[1] * dt;
-        this.dispXY[0] = this.posXY[0] - player.posXY[0] + player.dispXY[0];
-        this.dispXY[1] = this.posXY[1] - player.posXY[1] + player.dispXY[1];
-    }
-
-}
-class _exhaust extends _gameObject {
-    constructor(posX, posY, type, id, sprite) {
-        super(posX, posY, type, id, sprite);
     }
 }
-
 class _player extends _gameObject {
     constructor(posX, posY, type, id, sprite, dispXY) {
         super(posX, posY, type, id, sprite, dispXY);
@@ -162,11 +117,6 @@ class _player extends _gameObject {
             gold: 0,
         };
     }
-    changeShip(id) {
-        this.ship = ships[id];
-        this.sprite = this.ship.img;
-    }
-
     updatePlayer(dt) {
         if (this.angle != 360) {
             this.angle = this.angle % 360;
@@ -194,19 +144,19 @@ class _player extends _gameObject {
             this.karma -= dt;
         }
     }
-    shipExhaust() {
-        let exhaust1 = new _exhaust(this.posXY[0] - 10 * Math.sin(toRad(this.angle)), this.posXY[1] + 10 * Math.cos(toRad(this.angle)), 'exhaust', `exhaust${Object.keys(exhaustArray).length+gameTime}`, exhausts[0]);
-        exhaustArray[exhaust1.id] = exhaust1;
-    }
+    // shipExhaust() {
+    //     let exhaust1 = new _exhaust(this.posXY[0] - 10 * Math.sin(toRad(this.angle)), this.posXY[1] + 10 * Math.cos(toRad(this.angle)), 'exhaust', `exhaust${Object.keys(exhaustArray).length+gameTime}`, exhausts[0]);
+    //     exhaustArray[exhaust1.id] = exhaust1;
+    // }
     acceleratePlayer(dt) {
         this.veloXY[0] += Math.sin(toRad(this.angle)) * this.ship.accel * dt;
         this.veloXY[1] += Math.cos(toRad(this.angle)) * this.ship.accel * dt;
-        this.shipExhaust();
+        //      this.shipExhaust();
     }
     decceleratePlayer(dt) {
         this.veloXY[0] -= Math.sin(toRad(this.angle)) * this.ship.accel * dt;
         this.veloXY[1] -= Math.cos(toRad(this.angle)) * this.ship.accel * dt;
-        this.shipExhaust();
+        //     this.shipExhaust();
 
     }
     shootBullet(now) {
@@ -802,7 +752,7 @@ const collisionDetection = (bulletArray, targetArray) => {
                         delete bulletArray[x];
                     }
                     if (target.ship.hull <= 0) {
-                        if (target == player){
+                        if (target == player) {
                             gameOver();
                         }
                         if (bullet.owner == player) {
@@ -823,5 +773,20 @@ const collisionDetection = (bulletArray, targetArray) => {
                 }
             }
         }
+    }
+}
+
+const generateStars = (num, array) => {
+    for (let i = 0; i < num; i++) {
+        let star = new _star(ranN(10800) - 400, ranN(10800) - 400, 'star', `${i}`, stars[ranN(7)]);
+        array.push(star);
+    }
+}
+const generateAsteroids = (num, numID, x0, width, y0, height, array) => {
+    for (let i = 0; i < num; i++) {
+        let asteroid = new _asteroid(x0 + ranN(width), y0 + ranN(height), 'asteroid', `asteroid${i+numID}`, asteroids[ranN(3)]);
+        array[asteroid.id] = asteroid;
+        array[asteroid.id].frameIndex = ranN(array[asteroid.id].numberOfFrames);
+        array[asteroid.id].angle = ranN(360);
     }
 }

@@ -1,11 +1,4 @@
-const asteroidFields = [
-    [150, 0, 1000, 7000, 0, 2000],
-    [150, 600, 2000, 4000, 2000, 2000],
-    [150, 1200, 2000, 3000, 4000, 6000],
-    [150, 1800, 0, 2000, 6000, 4000],
-    [150, 2400, 6000, 2000, 2000, 8000],
-    [150, 3000, 8000, 2000, 3000, 6000]
-]
+
 
 const startGame = () => {
     //   playerName = prompt('What is your name?');
@@ -29,32 +22,8 @@ const startGame = () => {
 
     requestAnimFrame(main);
 }
-const pauseGame = () => {
-    isGameRunning = false;
-}
-const resumeGame = () => {
-    isGameRunning = true;
-    requestAnimFrame(main);
-}
-const generateStars = (num) => {
-    for (let i = 0; i < num; i++) {
-        let star = new _star(ranN(10800)-400, ranN(10800)-400, 'star', `${i}`, stars[ranN(7)]);
-//        star.angle=ranN(360);
-        starArray.push(star);
-    }
-}
-const generateAsteroids = (num, numID, x0, width, y0, height) => {
-    for (let i = 0; i < num; i++) {
-        let asteroid = new _asteroid(x0 + ranN(width), y0 + ranN(height), 'asteroid', `asteroid${i+numID}`, asteroids[ranN(3)]);
-        asteroidList[asteroid.id] = asteroid;
-        asteroidList[asteroid.id].frameIndex = ranN(asteroidList[asteroid.id].numberOfFrames);
-        asteroidList[asteroid.id].angle = ranN(360);
- //       asteroidList[asteroid.id].veloXY = [ranN(200) / 15, ranN(200) / 15];
 
 
-
-    }
-}
 const leaveStation = () => {
     player.veloXY = [0, 0];
     dockedStation = null;
@@ -193,10 +162,5 @@ shipArrays = {
     gameTime = Date.now();
     lastTime = Date.now();
     requestAnimFrame(main);
-
-    generateEnemy(shipArrays['pirate'], 10, 'pirate', 0, 5000, 0, 5000);
-    generateEnemy(shipArrays['raider'], 5, 'raider', 0, 5000, 0, 5000);
-    generateEnemy(shipArrays['trader'], 30, 'trader', 0, 5000, 0, 5000);
-    generateEnemy(shipArrays['police'], 15, 'police', 0, 5000, 0, 5000);
     
 }

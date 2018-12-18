@@ -1,10 +1,3 @@
-const gameContainer = document.getElementById('container');
-const secondaryContainer = document.getElementById('secondary-container');
-const stationContainer = document.createElement('div');
-const playerContainer = document.createElement('div');
-const minimapContainer = document.createElement('div');
-const menuContainer = document.createElement('div');
-const gameOverContainer = document.createElement('div');
 
 const playerElements = () => {
     playerContainer.className = 'status-player';
