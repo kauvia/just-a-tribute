@@ -322,11 +322,11 @@ const findDistance = (obj1, obj2) => {
     return distance;
 }
 //var declarations
-let player;
+let player={id:'',posXY:[undefined,undefined],dispXY:[300,300]};
 const objArray = {};
 const visibleObjArray = {};
 
-const gameContainer=document.getElementById('container');
+const gameContainer = document.getElementById('container');
 const secondaryContainer = document.getElementById('secondary-container');
 const stationContainer = document.createElement('div');
 const playerContainer = document.createElement('div');
@@ -345,65 +345,43 @@ const requestAnimFrame = (function () {
 })();
 
 //rendering and animating sprites
-class _gameObject {
-    constructor(posX, posY, id, sprite, dispXY = [300, 300], angle = 360) {
-        this.posXY = [posX, posY];
-        this.id = id;
-        this.dispXY = dispXY;
-        this.angle = angle;
-        this.active = true;
-        this.isPlayer = false;
+const renderSprite = (obj) => {
+    if (obj.active) {
+        ctx.setTransform(1, 0, 0, 1, Math.floor(obj.dispXY[0]), Math.floor(obj.dispXY[1]))
 
-        this.sprite = sprite;
-        this.width = this.sprite.width;
-        this.height = this.sprite.height;
-        this.ticksPerFrame = this.sprite.ticksPerFrame;
-        this.numberOfFrames = this.sprite.numberOfFrames;
-        this.frameIndex = 0;
-        this.tickCount = 1;
-        this.sprite = this.sprite.img;
-    }
-    renderSprite() {
-        if (this.active) {
-            ctx.setTransform(1, 0, 0, 1, Math.floor(this.dispXY[0]), Math.floor(this.dispXY[1]))
+        if (obj.type != 'star') {
+            ctx.rotate(toRad(obj.angle));
+        }
+        if (obj.numberOfFrames > 1) {
+            ctx.drawImage(resources.get(obj.sprite), obj.frameIndex * obj.width / obj.numberOfFrames, 0, obj.width / obj.numberOfFrames, obj.height, -obj.width / obj.numberOfFrames / 2, -obj.height / 2, obj.width / obj.numberOfFrames, obj.height);
+        } else {
+            ctx.drawImage(resources.get(obj.sprite),
+                -obj.width / 2, -obj.height / 2,
+                obj.width, obj.height);
+        }
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-            if (this.angle != 0 || this.angle != 360) {
-                ctx.rotate(toRad(this.angle));
-            }
-            if (this.numberOfFrames > 1) {
-                ctx.drawImage(resources.get(this.sprite), this.frameIndex * this.width / this.numberOfFrames, 0, this.width / this.numberOfFrames, this.height, -this.width / this.numberOfFrames / 2, -this.height / 2, this.width / this.numberOfFrames, this.height);
-            } else {
-                ctx.drawImage(resources.get(this.sprite),
-                    -this.width / 2, -this.height / 2,
-                    this.width, this.height);
-            }
-            ctx.setTransform(1, 0, 0, 1, 0, 0)
-
-        }
-    }
-    updateSprite() {
-        if (this.numberOfFrames > 1) {
-            this.tickCount++;
-            if (this.tickCount > this.ticksPerFrame) {
-                this.tickCount = 0;
-                if (this.frameIndex + 1 >= this.numberOfFrames) {
-                    this.frameIndex = 0;
-                } else {
-                    this.frameIndex++
-                }
-            }
-        }
-        if (!this.isPlayer) {
-            this.dispXY[0] = this.posXY[0] - player.posXY[0] + player.dispXY[0];
-            this.dispXY[1] = this.posXY[1] - player.posXY[1] + player.dispXY[1];
-        }
     }
 }
-class _star extends _gameObject {
-    constructor(posX, posY, type, id, sprite) {
-        super(posX, posY, type, id, sprite);
+const updateSprite = (obj) => {
+    if (obj.numberOfFrames > 1) {
+        obj.tickCount++;
+        if (obj.tickCount > obj.ticksPerFrame) {
+            obj.tickCount = 0;
+            if (obj.frameIndex + 1 >= obj.numberOfFrames) {
+                obj.frameIndex = 0;
+            } else {
+                obj.frameIndex++
+            }
+        }
     }
-  }
+    if (!obj.isPlayer) {
+        obj.dispXY[0] = obj.posXY[0] - player.posXY[0] + player.dispXY[0];
+        obj.dispXY[1] = obj.posXY[1] - player.posXY[1] + player.dispXY[1];
+    }
+}
+
+
 const visibleObject = () => {
     for (let obj in objArray) {
         distance = findDistance(objArray[obj], player);
@@ -419,7 +397,7 @@ const visibleObject = () => {
 const mapKeys = {};
 
 const userInputListener = () => {
-       console.log(mapKeys);
+  //  console.log(mapKeys);
     onkeydown = onkeyup = function (e) {
         e = e;
         mapKeys[e.keyCode] = e.type == 'keydown';
@@ -459,8 +437,8 @@ const update = () => {
 
 }
 const updateEntities = () => {
-    for (let obj in objArray) {
-        objArray[obj].updateSprite();
+    for (let obj in visibleObjArray) {
+        updateSprite(visibleObjArray[obj]);
     }
 
 }
@@ -469,7 +447,7 @@ const render = () => {
     //    playerDetailUpdate();
     ctx.fillStyle = 'black';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let obj in objArray) {
-        objArray[obj].renderSprite();
+    for (let obj in visibleObjArray) {
+        renderSprite(visibleObjArray[obj]);
     }
 }

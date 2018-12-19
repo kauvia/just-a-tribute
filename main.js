@@ -53,7 +53,7 @@ class _ship {
     }
 }
 class _gameObject {
-    constructor(posX, posY, type, id, sprite, dispXY = [0, 0], veloXY = [0, 0], angle = 360) {
+    constructor(posX, posY, type, id, sprite, dispXY = [300, 300], veloXY = [0, 0], angle = 360) {
         this.posXY = [posX, posY];
         this.type = type;
         this.id = id;
