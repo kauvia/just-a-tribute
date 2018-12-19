@@ -322,7 +322,11 @@ const findDistance = (obj1, obj2) => {
     return distance;
 }
 //var declarations
-let player={id:'',posXY:[undefined,undefined],dispXY:[300,300]};
+let player = {
+    id: '',
+    posXY: [undefined, undefined],
+    dispXY: [300, 300]
+};
 const objArray = {};
 const visibleObjArray = {};
 
@@ -397,29 +401,36 @@ const visibleObject = () => {
 const mapKeys = {};
 
 const userInputListener = () => {
-  //  console.log(mapKeys);
+    //  console.log(mapKeys);
     onkeydown = onkeyup = function (e) {
         e = e;
         mapKeys[e.keyCode] = e.type == 'keydown';
-        if (mapKeys[87]) { //w
+        if (mapKeys[87] || mapKeys[83] || mapKeys[65] || mapKeys[68] || mapKeys[82] || mapKeys[70]) { //w
+            this.console.log(player.angle)
+            socket.emit('playerAction', mapKeys)
             //         player.acceleratePlayer(dt);
         };
-        if (mapKeys[83]) { //s
-            //           player.decceleratePlayer(dt);
-        };
-        if (mapKeys[65]) { //a
-            //           player.angle -= 9;
-        };
-        if (mapKeys[68]) { //d
-            //          player.angle += 9;
-        };
-        if (mapKeys[82]) { //r
-            //          player.pickUpOre();
-            //           player.enterStation();
-        };
-        if (mapKeys[70]) { //f
-            //           player.shootBullet(now);
-        };
+        // if (mapKeys[83]) { //s
+        //     socket.emit('playerAction', mapKeys)
+        //    //           player.decceleratePlayer(dt);
+        // };
+        // if (mapKeys[65]) { //a
+        //     socket.emit('playerAction', mapKeys)
+        //     //           player.angle -= 9;
+        // };
+        // if (mapKeys[68]) { //d
+        //     socket.emit('playerAction', mapKeys)
+        //     //          player.angle += 9;
+        // };
+        // if (mapKeys[82]) { //r
+        //     socket.emit('playerAction', mapKeys)
+        //     //          player.pickUpOre();
+        //     //           player.enterStation();
+        // };
+        // if (mapKeys[70]) { //f
+        //     socket.emit('playerAction', mapKeys)
+        //     //           player.shootBullet(now);
+        // };
     }
 }
 

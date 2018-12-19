@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 let SOCKET_LIST = {};
 let PLAYER_LIST = {};
 
-const loginHandler = (data,socket) => {
+const loginHandler = (data, socket) => {
   if (!data.newAccount) {
     account.find({
       username: data.username
@@ -78,7 +78,6 @@ const loginHandler = (data,socket) => {
 }
 
 
-
 io.on('connection', socket => {
   SOCKET_LIST[socket.id] = socket;
 
@@ -88,19 +87,46 @@ io.on('connection', socket => {
     delete PLAYER_LIST[socket.id];
   });
   socket.on('login information', data => {
-    loginHandler(data,socket);
-
+    loginHandler(data, socket);
   });
+  socket.on('playerAction', pack => playerActionHandler(socket.id, pack))
+
 });
+
+const playerActionHandler = (id, pack) => {
+  let player = PLAYER_LIST[id];
+  if (pack[87]) { //w
+    player.acceleratePlayer(0.04);
+    console.log(player.veloXY)
+    //         player.acceleratePlayer(dt);
+  };
+  if (pack[83]) { //s
+    player.decceleratePlayer(0.04);
+
+    //           player.decceleratePlayer(dt);
+  };
+  if (pack[65]) { //a
+
+    player.angle -= 9;
+  };
+  if (pack[68]) { //d
+    player.angle += 9;
+  };
+  if (pack[82]) { //r
+    //          player.pickUpOre();
+    //           player.enterStation();
+  };
+  if (pack[70]) { //f
+    //           player.shootBullet(now);
+  };
+  console.log(pack);
+}
 
 setInterval(function () {
   let pack = [];
   for (let i in PLAYER_LIST) {
     let player = PLAYER_LIST[i];
-    player.posXY[0] +=  1;
-    player.posXY[1] +=  1;
-    player.angle += ranN(10) - 5;
-    player.angle = player.angle % 360;
+    player.updatePlayer(0.04);
     pack.push({
       id: player.id,
       x: player.posXY[0],
@@ -113,6 +139,7 @@ setInterval(function () {
     socket.emit('newPosition', pack);
     //  console.log(pack)
   }
+  pack = []
 }, 1000 / 25);
 
 
@@ -213,7 +240,7 @@ class _player extends _gameObject {
   }
   updatePlayer(dt) {
     if (this.angle != 360) {
-      this.angle = this.angle % 360;
+      this.angle = Math.abs(this.angle % 360);
     }
     if (this.angle == 0) {
       this.angle = 360
