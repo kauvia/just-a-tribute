@@ -352,7 +352,7 @@ const requestAnimFrame = (function () {
 const renderSprite = (obj) => {
     if (obj.active) {
         ctx.setTransform(1, 0, 0, 1, Math.floor(obj.dispXY[0]), Math.floor(obj.dispXY[1]))
-
+    //    console.log(obj)
         if (obj.type != 'star') {
             ctx.rotate(toRad(obj.angle));
         }

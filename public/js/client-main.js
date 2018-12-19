@@ -16,6 +16,7 @@ const loginAction = () => { //DevOP purposes
     accInfo['newAccount'] = false;
     accInfo['id'] = socket.id;
     socket.emit('login information', accInfo);
+
 }
 
 socket.on('login validation', (packet) => packet[0] ? playerInit(packet) : invalidLogin(packet))
@@ -45,17 +46,37 @@ socket.on('newPosition', pack => {
                 player.angle = pack[i].angle;
             } else if (objArray[pack[i].id]) {
                 let otherObj = objArray[pack[i].id];
-
                 otherObj.posXY[0] = pack[i].x;
                 otherObj.posXY[1] = pack[i].y;
                 otherObj.angle = pack[i].angle;
+            // } else {
+            //     objArray[pack[i].id] = pack[i];
+            //     let otherObj = objArray[pack[i].id];
+            //     otherObj.posXY[0] = pack[i].x;
+            //     otherObj.posXY[1] = pack[i].y;
+            //     otherObj.angle = pack[i].angle;
+
+            //     console.log(objArray[pack[i].id])
             }
         }
     }
 })
-socket.on('newPlayer', pack => {
+// socket.on('newPlayer', pack => {
+//     if (player.id) {
+//         objArray[pack.id] = pack;
+//     }
+// })
+socket.on('removeObj', pack => {
     if (player.id) {
-        objArray[pack.id] = pack;
+        console.log(pack);
+        delete objArray[pack.id];
+        delete visibleObjArray[pack.id];
     }
 })
+socket.on('addObj', pack => {
+    if (player.id) {
+        objArray[pack.id] = pack;
 
+    }
+})
+socket.on('death',pack => console.log(`you got killed by ${pack}`))
