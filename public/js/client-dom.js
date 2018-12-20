@@ -1,4 +1,3 @@
-
 const playerElements = () => {
     playerContainer.className = 'status-player';
     playerContainer.id = 'player-details';
@@ -24,7 +23,7 @@ const stationElements = () => {
             panel.style.display = 'none';
         }
         stationContainer.style.display = 'none';
-        leaveStation()
+        //        leaveStation()
     };
 }
 
@@ -79,35 +78,38 @@ const updateCreditCargoDisp = () => {
 
 const minimapStatics = () => {
     //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
-    for (let station in spaceStationArray) {
-        let stationDisp = document.createElement('img');
-        stationDisp.src = `${spaceStations[station].mapImg}`;
-        stationDisp.style.height = '20px';
-        stationDisp.style.width = '20px';
-        if (stationDisp.src == 'images/skullcross.png') {
-            stationDisp.style.height = '12px';
-            stationDisp.style.width = '16px';
+    for (let obj in objArray) {
+        if (objArray[obj].type == 'station') {
+            let station = objArray[obj];
+            let stationDisp = document.createElement('img');
+            stationDisp.src = `${station.mapImg}`;
+            stationDisp.style.height = '20px';
+            stationDisp.style.width = '20px';
+            if (stationDisp.src == 'images/skullcross.png') {
+                stationDisp.style.height = '12px';
+                stationDisp.style.width = '16px';
+            }
+            stationDisp.style.position = 'absolute';
+            stationDisp.style.top = `${station.posXY[1]/45}px`;
+            stationDisp.style.left = `${station.posXY[0]/45}px`;
+            minimapContainer.appendChild(stationDisp);
+        } else if (objArray[obj].type == 'asteroid') {
+            let asteroid = objArray[obj];
+            let lastDigit = asteroid.id;
+            lastDigit = parseInt(lastDigit.slice(-1));
+            if (lastDigit % 10 == 0) {
+                let asteroidDisp = document.createElement('img');
+                asteroidDisp.src = `${asteroid.sprite}`;
+                asteroidDisp.style.height = '2px';
+                asteroidDisp.style.width = '2px';
+                asteroidDisp.style.position = 'absolute';
+                asteroidDisp.style.top = `${asteroid.posXY[1]/40}px`;
+                asteroidDisp.style.left = `${asteroid.posXY[0]/40}px`;
+                minimapContainer.appendChild(asteroidDisp);
+            }
         }
-        stationDisp.style.position = 'absolute';
-        stationDisp.style.top = `${spaceStationArray[station].posXY[1]/45}px`;
-        stationDisp.style.left = `${spaceStationArray[station].posXY[0]/45}px`;
-        minimapContainer.appendChild(stationDisp);
     }
-    for (let asteroid in asteroidList) {
-        let lastDigit = asteroidList[asteroid].id;
-        lastDigit = lastDigit.slice(-1);
-        lastDigit = parseInt(lastDigit);
-        if (lastDigit % 10 == 0) {
-            let asteroidDisp = document.createElement('img');
-            asteroidDisp.src = `${asteroidList[asteroid].sprite}`;
-            asteroidDisp.style.height = '2px';
-            asteroidDisp.style.width = '2px';
-            asteroidDisp.style.position = 'absolute';
-            asteroidDisp.style.top = `${asteroidList[asteroid].posXY[1]/40}px`;
-            asteroidDisp.style.left = `${asteroidList[asteroid].posXY[0]/40}px`;
-            minimapContainer.appendChild(asteroidDisp);
-        }
-    }
+
 }
 const playerDisp = document.createElement('img');
 
@@ -130,16 +132,7 @@ const playerDetailSetup = () => {
     menuButton.style.top = '0px';
     menuButton.style.right = '0px';
     menuButton.onclick = () => {
-        pauseGame();
         menuContainer.style.display = 'block';
-        let newGameButton = document.getElementById('New Game-button');
-        newGameButton.style.display = 'none';
-        let saveGameButton = document.getElementById('Save Game-button');
-        saveGameButton.style.display = 'block';
-        let loadGameButton = document.getElementById('Load Game-button');
-        loadGameButton.style.display = 'none';
-        let resumeGameButton = document.getElementById('Resume Game-button');
-        resumeGameButton.style.display = 'block';
 
     }
 

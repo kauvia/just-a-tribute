@@ -1,14 +1,3 @@
-const express = require("express");
-const mongojs = require('mongojs');
-const app = express();
-const http = require('http').Server(app)
-const io = require('socket.io')(http);
-const path = require("path");
-
-const db = mongojs('STAR_PLEBE');
-const account = db.collection('account');
-
-const resources = require('./resources');
 //helper functions
 const ranN = (num) => Math.floor(Math.random() * num); //return random number from 0-num
 const toRad = (angleInDegree) => angleInDegree * Math.PI / 180;
@@ -16,19 +5,81 @@ const findDistance = (obj1, obj2) => {
   let distance = Math.sqrt((Math.pow(obj1.posXY[0] - obj2.posXY[0], 2)) + (Math.pow(obj1.posXY[1] - obj2.posXY[1], 2)));
   return distance;
 }
+const findRelativeVelocity = (obj1, obj2) => {
+  let relativeVelocity = obj1.veloXY[0] - obj2.veloXY[0] + obj1.veloXY[1] - obj2.veloXY[1];
+  if (relativeVelocity < 0) {
+    relativeVelocity = -Math.sqrt((Math.pow(obj1.veloXY[0] - obj2.veloXY[0], 2)) + (Math.pow(obj1.veloXY[1] - obj2.veloXY[1], 2)));
+  } else {
+    relativeVelocity = Math.sqrt((Math.pow(obj1.veloXY[0] - obj2.veloXY[0], 2)) + (Math.pow(obj1.veloXY[1] - obj2.veloXY[1], 2)));
+  }
+  return relativeVelocity;
+}
+const resources = require('./resources')
+
+const express = require("express");
+const mongojs = require('mongojs');
+const app = express();
+const http = require('http').Server(app)
+const io = require('socket.io')(http);
+const path = require("path");
+const db = mongojs('STAR_PLEBE');
+const account = db.collection('account');
+
+const SOCKET_LIST = {};
+const PLAYER_LIST = {};
+const dynamicObjArray = {
+  ship: {
+    pirate: {},
+    raider: {},
+    trader: {},
+    police: {},
+    miner: {},
+  },
+  bullet: {},
+  asteroid: {},
+  ore: {},
+}
+
+const staticObjArray = {
+  spaceStations: {},
+  stars: {},
+}
+const asteroidFields = [
+  [150, 0, 1000, 7000, 0, 2000],
+  [150, 600, 2000, 4000, 2000, 2000],
+  [150, 1200, 2000, 3000, 4000, 6000],
+  [150, 1800, 0, 2000, 6000, 4000],
+  [150, 2400, 6000, 2000, 2000, 8000],
+  [150, 3000, 8000, 2000, 3000, 6000]
+]
 
 http.listen(3001, () => {
   console.log('listening on *:3001');
 });
 
 app.use(express.static('public'))
-
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'));
 });
 
-let SOCKET_LIST = {};
-let PLAYER_LIST = {};
+io.on('connection', socket => {
+  SOCKET_LIST[socket.id] = socket;
+
+  socket.on('disconnect', () => {
+    if (PLAYER_LIST[socket.id]) {
+      removeObjUpdate(true, socket, PLAYER_LIST[socket.id]);
+    }
+    delete SOCKET_LIST[socket.id];
+    delete PLAYER_LIST[socket.id];
+  });
+  socket.on('login information', data => {
+    loginHandler(data, socket);
+  });
+  socket.on('playerAction', pack => {
+    playerActionHandler(socket.id, pack)
+  })
+
+});
 
 const loginHandler = (data, socket) => {
   if (!data.newAccount) {
@@ -39,11 +90,9 @@ const loginHandler = (data, socket) => {
         io.to(data.id).emit('login validation', [false, 'no such user']);
         console.log('no such user')
       } else if (docs[0].password == data.password) {
-        let player = new _player(4800 + ranN(200), 4800 + ranN(200), 'player', data.id, new _ship(resources.ships[0]))
-        player.ship.weaponHardpoints[0] = resources.weapons[0];
-        player.ship.weaponHardpoints[0].bullet = resources.bullets[0];
+        let player = generatePlayer(4900 + ranN(200), 4900 + ranN(200), data.id, 0, 0);
         PLAYER_LIST[data.id] = player;
-        io.to(data.id).emit('login validation', [true, staticObjArray, PLAYER_LIST]);
+        io.to(data.id).emit('login validation', [true, staticObjArray, PLAYER_LIST, dynamicObjArray]);
         //   socket.broadcast.emit('newPlayer', player);
         addObjUpdate(true, socket, player);
       } else {
@@ -78,6 +127,14 @@ const loginHandler = (data, socket) => {
     })
   }
 }
+const positionUpdate = (pack) => {
+  for (let i in SOCKET_LIST) {
+    let socket = SOCKET_LIST[i];
+    socket.emit('newPosition', pack);
+  }
+}
+
+
 const addObjUpdate = (isBroadcast, sock, obj) => {
   if (sock) {
     isBroadcast ? sock.broadcast.emit('addObj', obj) :
@@ -98,36 +155,18 @@ const removeObjUpdate = (isBroadcast, sock, obj) => {
     }
   }
 }
-io.on('connection', socket => {
-  SOCKET_LIST[socket.id] = socket;
-
-  socket.on('disconnect', () => {
-    if (PLAYER_LIST[socket.id]) {
-      removeObjUpdate(true, socket, PLAYER_LIST[socket.id]);
-    }
-    delete SOCKET_LIST[socket.id];
-    delete PLAYER_LIST[socket.id];
-  });
-  socket.on('login information', data => {
-    loginHandler(data, socket);
-  });
-  socket.on('playerAction', pack => playerActionHandler(socket.id, pack))
-
-});
 
 
 const playerActionHandler = (id, pack) => {
   let player = PLAYER_LIST[id];
+
   let now = Date.now();
 
   if (pack[87]) { //w
     player.acceleratePlayer(0.02);
-    //         player.acceleratePlayer(dt);
   };
   if (pack[83]) { //s
     player.decceleratePlayer(0.02);
-
-    //           player.decceleratePlayer(dt);
   };
   if (pack[65]) { //a
 
@@ -137,23 +176,100 @@ const playerActionHandler = (id, pack) => {
     player.angle += 9;
   };
   if (pack[82]) { //r
-    //          player.pickUpOre();
-    //           player.enterStation();
+    player.pickUpOre();
+    player.enterStation();
   };
   if (pack[70]) { //f
     player.shootBullet(now);
   };
 }
 
+const asteroidCollision = (bulletArray, asteroidArray) => {
+  for (let x in bulletArray) {
+    for (let y in asteroidArray) {
+      let target = asteroidArray[y];
+      let bullet = bulletArray[x];
+      let distance = findDistance(bullet, target);
+      if (distance < target.width / 2 / target.numberOfFrames) {
+        target.hull -= bullet.damage;
+        removeObjUpdate(false, false, bulletArray[x]);
+        delete bulletArray[x];
+        if (target.hull <= 0) {
+          target.spawnOres();
+          removeObjUpdate(false, false, asteroidArray[y]);
+          delete dynamicObjArray.asteroid[y];
+        }
+        break;
+      }
+    }
+  }
+}
+const shipCollision = (bulletArray, targetArray) => {
+  for (let x in bulletArray) {
+    for (let ship in targetArray) {
+      let target = targetArray[ship];
+      let bullet = bulletArray[x];
+      if (bullet.owner != target && (bullet.owner.type != target.type || target.type == 'player')) {
+        let distance = findDistance(bullet, target);
+        if (distance < target.width / 2 / target.numberOfFrames) {
+          if (target.ship.shield > bullet.damage) {
+            target.ship.shield -= bullet.damage;
+          } else if (target.ship.shield > 0) {
+            let shieldPenetration = bullet.damage - target.ship.shield;
+            target.ship.shield = 0;
+            target.ship.hull -= shieldPenetration;
+          } else {
+            target.ship.hull -= bullet.damage;
+          };
+          if (bullet.bullet.name != 'c-beam') {
+            removeObjUpdate(false, false, bulletArray[x])
+            console.log(target.ship.shield, target.ship.hull)
+            delete bulletArray[x];
+          }
+          if (target.ship.hull <= 0) {
+            if (target.type == 'player') {
+              target.ship.hull = 200;
+              target.ship.shield = 200;
+              target.posXY = [4900 + ranN(200), 4900 + ranN(200)];
+              io.to(`${target.id}`).emit('death', bullet.owner.id);
+              console.log('a player died')
+            }
+            if (bullet.owner.type == 'player') {
+              if (targetArray == dynamicObjArray['trader'] || targetArray == dynamicObjArray['police']) {
+                console.log('u attked friendly ship');
+                bullet.owner.karma += 100;
+              } else if (targetArray == dynamicObjArray['pirate'] || targetArray == dynamicObjArray['raider']) {
+                if (bullet.owner.karma > 50) {
+                  bullet.owner.karma -= 50
+                } else {
+                  bullet.owner.karma = 0
+                }
+              }
+            }
+            if (target.type != 'player') {
+              removeObjUpdate(false, false, targetArray[ship])
+              delete targetArray[ship];
+            }
+
+          };
+          break;
+        }
+      }
+    }
+  }
+}
+
+
 setInterval(function () {
-  // for (let player in PLAYER_LIST) {
-  //   console.log(PLAYER_LIST[player].ship.energy)
-  // }
   let now = Date.now();
-  collisionDetection(dynamicObjArray['bullet'], PLAYER_LIST)
+  shipCollision(dynamicObjArray.bullet, PLAYER_LIST);
+  for (type in dynamicObjArray.ship) {
+    shipCollision(dynamicObjArray.bullet, dynamicObjArray.ship[type])
+  }
+  asteroidCollision(dynamicObjArray.bullet, dynamicObjArray.asteroid);
   let pack = [];
-  for (let i in dynamicObjArray['bullet']) {
-    let bullet = dynamicObjArray['bullet'][i];
+  for (let i in dynamicObjArray.bullet) {
+    let bullet = dynamicObjArray.bullet[i];
     bullet.updatePosition(0.02);
     pack.push({
       id: bullet.id,
@@ -162,6 +278,8 @@ setInterval(function () {
       angle: bullet.angle,
     })
   }
+
+
   for (let i in PLAYER_LIST) {
     let player = PLAYER_LIST[i];
     player.updatePlayer(0.02);
@@ -171,41 +289,39 @@ setInterval(function () {
       y: player.posXY[1],
       angle: player.angle
     });
+
   }
-  for (let i in SOCKET_LIST) {
-    let socket = SOCKET_LIST[i];
-    socket.emit('newPosition', pack);
-  }
+  positionUpdate(pack);
   pack = []
 }, 1000 / 50);
 
 
 
-// game data
-const asteroidFields = [
-  [150, 0, 1000, 7000, 0, 2000],
-  [150, 600, 2000, 4000, 2000, 2000],
-  [150, 1200, 2000, 3000, 4000, 6000],
-  [150, 1800, 0, 2000, 6000, 4000],
-  [150, 2400, 6000, 2000, 2000, 8000],
-  [150, 3000, 8000, 2000, 3000, 6000]
-]
 
-let dynamicObjArray = {
-  pirate: {},
-  raider: {},
-  trader: {},
-  police: {},
-  miner: {},
-  bullet: {},
-  player: {},
-  asteroid: {},
-  ore: {},
-}
 
-const staticObjArray = {
-  spaceStations: {},
-  stars: {},
+class _ship {
+  constructor(ship) {
+    this.name = ship.name;
+    this.img = ship.img;
+    this.id = ship.id;
+    this.width = ship.width;
+    this.height = ship.height;
+    this.numberOfFrames = ship.numberOfFrames;
+    this.ticksPerFrame = ship.ticksPerFrame;
+    this.maxSpeed = ship.maxSpeed;
+    this.accel = ship.accel;
+    this.energy = ship.energy;
+    this.maxEnergy = ship.maxEnergy;
+    this.shield = ship.shield;
+    this.maxShield = ship.maxShield;
+    this.hull = ship.hull;
+    this.maxHull = ship.maxHull;
+    this.maxWeaponHardpoints = ship.maxWeaponHardpoints;
+    this.weaponHardpoints = ship.weaponHardpoints;
+    this.maxCargo = ship.maxCargo;
+    this.cargo = ship.cargo;
+    this.value = ship.value;
+  }
 }
 
 class _gameObject {
@@ -243,7 +359,11 @@ class _gameObject {
       case 'asteroid':
         this.asteroid = this.sprite;
         break;
-    }
+      case 'station':
+      this.station=this.sprite;
+      this.mapImg=this.sprite.mapImg;
+   
+      }
     this.veloXY = veloXY;
     this.angle = angle;
     this.dispXY = dispXY;
@@ -348,23 +468,26 @@ class _player extends _gameObject {
   rechargeEnergyShield(dt) {
     if (this.ship.shield < this.ship.maxShield) {
       this.ship.shield += dt * 10;
-      console.log(this.ship.shield)
     }
     if (this.ship.energy < this.ship.maxEnergy) {
       this.ship.energy++;
     }
   }
   pickUpOre() {
-    for (const ore in oreList) {
-      if (player.posXY[0] >= oreList[ore].posXY[0] - 50 &&
-        player.posXY[0] <= oreList[ore].posXY[0] + 50 &&
-        player.posXY[1] >= oreList[ore].posXY[1] - 50 &&
-        player.posXY[1] <= oreList[ore].posXY[1] + 50
+    for (const ore in dynamicObjArray.ore) {
+      console.log('trying to pick up ore')
+      let oreArray = dynamicObjArray.ore;
+      if (this.posXY[0] >= oreArray[ore].posXY[0] - 50 &&
+        this.posXY[0] <= oreArray[ore].posXY[0] + 50 &&
+        this.posXY[1] >= oreArray[ore].posXY[1] - 50 &&
+        this.posXY[1] <= oreArray[ore].posXY[1] + 50
       ) {
-        if (player.ship.cargo.length < player.ship.maxCargo) {
-          player.ship.cargo.push(oreList[ore]);
-          delete oreList[ore];
-          updateCreditCargoDisp();
+        if (this.ship.cargo.length < this.ship.maxCargo) {
+          this.ship.cargo.push(oreArray[ore]);
+          this.oreCounter();
+          io.to(`${this.id}`).emit('oreCountUpdate', this.oreCount);
+          removeObjUpdate(false, false, oreArray[ore])
+          delete dynamicObjArray.ore[ore];
         } else {
           console.log('cargo is full!!')
         }
@@ -401,112 +524,110 @@ class _player extends _gameObject {
     this.oreCount.gold = oreCountTemp.gold;
   };
   enterStation() {
-    for (let station in spaceStationArray) {
-      let relativeVelocity = Math.abs(findRelativeVelocity(player, spaceStationArray[0]));
-      if (relativeVelocity < 50) {
-        if (player.posXY[0] >= spaceStationArray[station].posXY[0] - spaceStationArray[station].width / 2 &&
-          player.posXY[0] <= spaceStationArray[station].posXY[0] + spaceStationArray[station].width / 2 &&
-          player.posXY[1] >= spaceStationArray[station].posXY[1] - spaceStationArray[station].height / 2 &&
-          player.posXY[1] <= spaceStationArray[station].posXY[1] + spaceStationArray[station].height / 2
-        ) {
-          dockedStation = spaceStationArray[station];
-          for (let ore in oreTradeList) {
-            oreTradeList[ore].updateStocks(dockedStation)
-          }
-          updateCreditCargoDisp();
-          stationContainer.style.display = 'block';
-          pauseGame();
+    for (let obj in staticObjArray.spaceStations) {
+      let station = staticObjArray.spaceStations[obj];
+      let distance = findDistance(this, station);
+      let relativeVelocity = Math.abs(findRelativeVelocity(this, station));
+      if (relativeVelocity < 30) {
+        if (distance < 120) {
+          this.active = false;
+          this.veloXY = [0, 0];
+          io.emit('docked', this.id)
+       //   SOCKET_LIST[this.id].broadcast.emit('docked', this.id)
+          //     dockedStation = spaceStationArray[station];
+          //    for (let ore in oreTradeList) {
+          //     oreTradeList[ore].updateStocks(dockedStation)
+          //     }
+          //    updateCreditCargoDisp();
+          //    stationContainer.style.display = 'block';
+          //         pauseGame();
 
         }
       }
     }
   };
-
 }
+class _asteroid extends _gameObject {
+  constructor(posX, posY, type, id, sprite) {
+    super(posX, posY, type, id, sprite);
+    this.ores = this.asteroid.ores;
+    this.hull = this.asteroid.hull;
+  }
+
+  spawnOres() {
+    for (let index in this.ores) {
+      let num = ranN(2);
+      if (num == 1) {
+        let ore = new _ore(this.posXY[0], this.posXY[1], `${resources.ores[this.ores[index]].name}`, `${resources.ores[this.ores[index]].name+Date.now()+ranN(100000)}`, resources.ores[this.ores[index]]);
+        ore.angle = ranN(360);
+        ore.veloXY[0] = Math.sin(toRad(ore.angle)) * ranN(100) / 10;
+        ore.veloXY[1] = Math.cos(toRad(ore.angle)) * ranN(100) / 10;
+        dynamicObjArray['ore'][ore.id] = ore;
+        addObjUpdate(false, false, ore)
+        setTimeout(function () {
+          if (dynamicObjArray['ore'][ore.id]) {
+            removeObjUpdate(false, false, dynamicObjArray.ore[ore.id])
+            delete dynamicObjArray['ore'][ore.id];
+          }
+        }, 10000 + ranN(3000))
+      }
+    }
+  };
+}
+class _ore extends _gameObject {
+  constructor(posX, posY, type, id, sprite) {
+    super(posX, posY, type, id, sprite);
+  }
+}
+
 class _star extends _gameObject {
   constructor(posX, posY, type, id, sprite) {
     super(posX, posY, type, id, sprite);
   }
 }
-class _ship {
-  constructor(ship) {
-    this.name = ship.name;
-    this.img = ship.img;
-    this.id = ship.id;
-    this.width = ship.width;
-    this.height = ship.height;
-    this.numberOfFrames = ship.numberOfFrames;
-    this.ticksPerFrame = ship.ticksPerFrame;
-    this.maxSpeed = ship.maxSpeed;
-    this.accel = ship.accel;
-    this.energy = ship.energy;
-    this.maxEnergy = ship.maxEnergy;
-    this.shield = ship.shield;
-    this.maxShield = ship.maxShield;
-    this.hull = ship.hull;
-    this.maxHull = ship.maxHull;
-    this.maxWeaponHardpoints = ship.maxWeaponHardpoints;
-    this.weaponHardpoints = ship.weaponHardpoints;
-    this.maxCargo = ship.maxCargo;
-    this.cargo = ship.cargo;
-    this.value = ship.value;
-  }
-}
-
-const generateStars = (num, array) => {
-  for (let i = 0; i < num; i++) {
-    let star = new _star(ranN(10800) - 400, ranN(10800) - 400, 'star', `${i}`, resources.stars[ranN(7)]);
-    array[star.id] = star;
-  }
-}
-
-const collisionDetection = (bulletArray, targetArray) => {
-  for (let x in bulletArray) {
-    for (let ship in targetArray) {
-      let target = targetArray[ship];
-      let bullet = bulletArray[x];
-      if (bullet.owner != target && (bullet.owner.type != target.type || target.type == 'player')) {
-        let distance = findDistance(bullet, target);
-        if (distance < target.width / 2 / target.numberOfFrames) {
-          if (target.ship.shield > bullet.damage) {
-            target.ship.shield -= bullet.damage;
-          } else if (target.ship.shield > 0) {
-            let shieldPenetration = bullet.damage - target.ship.shield;
-            target.ship.shield = 0;
-            target.ship.hull -= shieldPenetration;
-          } else {
-            target.ship.hull -= bullet.damage;
-          };
-          if (bullet.bullet.name != 'c-beam') {
-            removeObjUpdate(false, false, bulletArray[x])
-            console.log(target.ship.shield, target.ship.hull)
-            delete bulletArray[x];
-          }
-          if (target.ship.hull <= 0) {
-            if (target.type == 'player') {
-              io.to(`${target.id}`).emit('death', bullet.owner.id);
-              console.log('a player died')
-            }
-            if (bullet.owner.type == 'player') {
-              if (targetArray == dynamicObjArray['trader'] || targetArray == dynamicObjArray['police']) {
-                console.log('u attked friendly ship');
-                bullet.owner.karma += 100;
-              } else if (targetArray == dynamicObjArray['pirate'] || targetArray == dynamicObjArray['raider']) {
-                if (bullet.owner.karma > 50) {
-                  bullet.owner.karma -= 50
-                } else {
-                  bullet.owner.karma = 0
-                }
-              }
-            }
-            removeObjUpdate(false, false, targetArray[ship])
-            delete targetArray[ship];
-
-          };
-          break;
-        }
-      }
+class _spaceStation extends _gameObject {
+  constructor(posX, posY, type, id, sprite) {
+    super(posX, posY, type, id, sprite);
+    this.oreStock = {
+      iron: 100,
+      copper: 100,
+      uranium: 100,
+      gold: 100
     }
   }
 }
-generateStars(3000, staticObjArray['stars']);
+const generateStars = (num) => {
+  for (let i = 0; i < num; i++) {
+    let star = new _star(ranN(10800) - 400, ranN(10800) - 400, 'star', `${i}`, resources.stars[ranN(7)]);
+    staticObjArray.stars[star.id] = star;
+  }
+}
+const generateAsteroids = (num, id, posX, width, posY, height) => {
+  for (let i = 0; i < num; i++) {
+    let asteroid = new _asteroid(posX + ranN(width), posY + ranN(height), 'asteroid', `asteroid${id+i}`, resources.asteroids[ranN(3)])
+    dynamicObjArray.asteroid[asteroid.id] = asteroid;
+  }
+
+}
+const generatePlayer = (x, y, id, shipId, weaponId) => {
+  let player = new _player(x, y, 'player', id, resources.ships[shipId]);
+  player.ship.weaponHardpoints[0] = resources.weapons[weaponId];
+  player.ship.weaponHardpoints[0].bullet = resources.bullets[weaponId];
+  return player;
+}
+const generateStation = (x, y, id) => {
+  let station = new _spaceStation(x, y, 'station', resources.spaceStations[id].name, resources.spaceStations[id])
+  staticObjArray.spaceStations[station.id] = station;
+}
+
+
+
+// game data creation from ./entity-generation++
+for (let field in asteroidFields) {
+  generateAsteroids(asteroidFields[field][0], asteroidFields[field][1], asteroidFields[field][2], asteroidFields[field][3], asteroidFields[field][4], asteroidFields[field][5])
+};
+generateStation(4700, 5200, 1);
+generateStation(3300, 3300, 2);
+generateStation(7700, 7700, 0);
+
+generateStars(3000);

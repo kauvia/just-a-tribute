@@ -307,7 +307,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: []
+        ores: [0,0,1]
     }, {
         name: 'radioactive',
         img: `images/asteroid2.png`,
@@ -317,7 +317,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: []
+        ores: [1,2,2]
     }, {
         name: 'precious',
         img: `images/asteroid3.png`,
@@ -327,7 +327,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: []
+        ores: [2,2,3]
     }],
 
     spaceStations: [{

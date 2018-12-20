@@ -20,22 +20,34 @@ const loginAction = () => { //DevOP purposes
 }
 
 socket.on('login validation', (packet) => packet[0] ? playerInit(packet) : invalidLogin(packet))
-
+// initial packet upon successful login
 const playerInit = packet => {
     player.id = socket.id;
     player = packet[2][player.id];
     for (let player in packet[2]) {
         objArray[packet[2][player].id] = packet[2][player];
     }
-    for (let star in packet[1].stars) {
-        objArray[packet[1].stars[star].id] = packet[1].stars[star];
+    for (let type in packet[1]){
+        console.log(type)
+        for (let obj in packet[1][type]){
+            let entity =packet[1][type][obj];
+            objArray[entity.id]=entity;
+        }
+    }
+    for (let asteroid in packet[3].asteroid) {
+        objArray[packet[3].asteroid[asteroid].id] = packet[3].asteroid[asteroid];
+
     }
     menuContainer.style.display = 'none';
+   playerElements();
+   stationElements();
+   playerDetailSetup();
+   minimapStatics();
     main();
 };
 const invalidLogin = packet => console.log(packet[1])
 
-// receiving packets from server(updates and newplayers)
+// receiving update packets from server
 
 socket.on('newPosition', pack => {
     if (player.id) {
@@ -49,26 +61,13 @@ socket.on('newPosition', pack => {
                 otherObj.posXY[0] = pack[i].x;
                 otherObj.posXY[1] = pack[i].y;
                 otherObj.angle = pack[i].angle;
-            // } else {
-            //     objArray[pack[i].id] = pack[i];
-            //     let otherObj = objArray[pack[i].id];
-            //     otherObj.posXY[0] = pack[i].x;
-            //     otherObj.posXY[1] = pack[i].y;
-            //     otherObj.angle = pack[i].angle;
-
-            //     console.log(objArray[pack[i].id])
             }
         }
     }
 })
-// socket.on('newPlayer', pack => {
-//     if (player.id) {
-//         objArray[pack.id] = pack;
-//     }
-// })
+
 socket.on('removeObj', pack => {
     if (player.id) {
-        console.log(pack);
         delete objArray[pack.id];
         delete visibleObjArray[pack.id];
     }
@@ -79,4 +78,15 @@ socket.on('addObj', pack => {
 
     }
 })
-socket.on('death',pack => console.log(`you got killed by ${pack}`))
+socket.on('oreCountUpdate', pack => {
+    player.oreCount = pack;
+    console.log('received orecountupdate')
+})
+socket.on('docked', pack => {
+    objArray[pack].active = false;
+    if (player.id = pack){
+
+    }
+})
+
+socket.on('death', pack => console.log(`you got killed by ${pack}`))

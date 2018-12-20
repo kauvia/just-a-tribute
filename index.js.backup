@@ -1,0 +1,194 @@
+const express = require("express");
+const mongojs = require('mongojs');
+const app = express();
+const http = require('http').Server(app)
+const io = require('socket.io')(http);
+const path = require("path");
+const db = mongojs('STAR_PLEBE');
+const account = db.collection('account');
+
+const SOCKET_LIST = {};
+
+io.on('connection', socket => {
+  SOCKET_LIST[socket.id] = socket;
+
+  socket.on('disconnect', () => {
+    if (PLAYER_LIST[socket.id]) {
+      removeObjUpdate(true, socket, PLAYER_LIST[socket.id]);
+    }
+    delete SOCKET_LIST[socket.id];
+    delete PLAYER_LIST[socket.id];
+  });
+  socket.on('login information', data => {
+    loginHandler(data, socket);
+  });
+  socket.on('playerAction', pack => playerActionHandler(socket.id, pack))
+
+});
+const playerActionHandler = (id, pack) => {
+  let player = PLAYER_LIST[id];
+  let now = Date.now();
+
+  if (pack[87]) { //w
+    player.acceleratePlayer(0.02);
+  };
+  if (pack[83]) { //s
+    player.decceleratePlayer(0.02);
+  };
+  if (pack[65]) { //a
+
+    player.angle -= 9;
+  };
+  if (pack[68]) { //d
+    player.angle += 9;
+  };
+  if (pack[82]) { //r
+    player.pickUpOre();
+    //           player.enterStation();
+  };
+  if (pack[70]) { //f
+    player.shootBullet(now);
+  };
+}
+const loginHandler = (data, socket) => {
+    if (!data.newAccount) {
+      account.find({
+        username: data.username
+      }, (err, docs) => {
+        if (!docs[0]) {
+          io.to(data.id).emit('login validation', [false, 'no such user']);
+          console.log('no such user')
+        } else if (docs[0].password == data.password) {
+          let player = create.player(4900 + ranN(200), 4900 + ranN(200), data.id, 0, 0);
+          PLAYER_LIST[data.id] = player;
+          io.to(data.id).emit('login validation', [true, staticObjArray, PLAYER_LIST, dynamicObjArray]);
+          //   socket.broadcast.emit('newPlayer', player);
+          addObjUpdate(true, socket, player);
+        } else {
+          io.to(data.id).emit('login validation', [false, 'wrong password']);
+          console.log('wrong password')
+        }
+      })
+    } else {
+      account.find({
+        username: data.username
+      }, (err, docs) => {
+        if (docs[0]) {
+          io.to(data.id).emit('login validation', [false, 'username already taken']);
+          console.log('username already taken')
+        } else if (data.password.length >= 8) {
+          account.insert({
+            username: data.username,
+            password: data.password
+          });
+          io.to(data.id).emit('login validation', [true, {
+            playyername: data.username, // DUMMY VALUES
+            posxy: [212, 312], // FOR TESTING
+            ship: {
+              name: 'mars',
+              speed: 5 // PURPOSES
+            }
+          }]);
+        } else {
+          io.to(data.id).emit('login validation', [false, 'password too short']);
+          console.log('password too short')
+        }
+      })
+    }
+  }
+const addObjUpdate = (isBroadcast, sock, obj) => {
+    if (sock) {
+        isBroadcast ? sock.broadcast.emit('addObj', obj) :
+            sock.emit('addObj', obj);
+    } else {
+        for (let i in SOCKET_LIST) {
+            SOCKET_LIST[i].emit('addObj', obj)
+        }
+    }
+}
+const removeObjUpdate = (isBroadcast, sock, obj) => {
+    if (sock) {
+        isBroadcast ? sock.broadcast.emit('removeObj', obj) :
+            sock.emit('removeObj', obj);
+    } else {
+        for (let i in SOCKET_LIST) {
+            SOCKET_LIST[i].emit('removeObj', obj)
+        }
+    }
+}
+
+
+const phys = require('./physics')
+const create = require('./entity-generation')
+//helper functions
+const ranN = (num) => Math.floor(Math.random() * num); //return random number from 0-num
+const toRad = (angleInDegree) => angleInDegree * Math.PI / 180;
+const findDistance = (obj1, obj2) => {
+  let distance = Math.sqrt((Math.pow(obj1.posXY[0] - obj2.posXY[0], 2)) + (Math.pow(obj1.posXY[1] - obj2.posXY[1], 2)));
+  return distance;
+}
+
+http.listen(3001, () => {
+  console.log('listening on *:3001');
+});
+
+app.use(express.static('public'))
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+const PLAYER_LIST = {};
+
+
+
+
+
+
+
+
+setInterval(function () {
+  let now = Date.now();
+  phys.shipCollision(create.dynamicObjArray.bullet, PLAYER_LIST);
+  for (type in create.dynamicObjArray.ship) {
+    phys.shipCollision(create.dynamicObjArray.bullet, create.dynamicObjArray.ship[type])
+  }
+  phys.asteroidCollision(create.dynamicObjArray.bullet, create.dynamicObjArray.asteroid);
+  let pack = [];
+  for (let i in create.dynamicObjArray.bullet) {
+    let bullet = create.dynamicObjArray.bullet[i];
+    bullet.updatePosition(0.02);
+    pack.push({
+      id: bullet.id,
+      x: bullet.posXY[0],
+      y: bullet.posXY[1],
+      angle: bullet.angle,
+    })
+  }
+
+
+  for (let i in PLAYER_LIST) {
+    let player = PLAYER_LIST[i];
+    player.updatePlayer(0.02);
+    pack.push({
+      id: player.id,
+      x: player.posXY[0],
+      y: player.posXY[1],
+      angle: player.angle
+    });
+  }
+  for (let i in SOCKET_LIST) {
+    let socket = SOCKET_LIST[i];
+    socket.emit('newPosition', pack);
+  }
+  pack = []
+}, 1000 / 50);
+
+
+
+// game data creation from ./entity-generation++
+for (let field in create.asteroidFields) {
+  create.asteroid(create.asteroidFields[field][0], create.asteroidFields[field][1], create.asteroidFields[field][2], create.asteroidFields[field][3], create.asteroidFields[field][4], create.asteroidFields[field][5])
+};
+
+create.star(3000);

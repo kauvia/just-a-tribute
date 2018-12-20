@@ -352,7 +352,7 @@ const requestAnimFrame = (function () {
 const renderSprite = (obj) => {
     if (obj.active) {
         ctx.setTransform(1, 0, 0, 1, Math.floor(obj.dispXY[0]), Math.floor(obj.dispXY[1]))
-    //    console.log(obj)
+        //    console.log(obj)
         if (obj.type != 'star') {
             ctx.rotate(toRad(obj.angle));
         }
@@ -389,7 +389,7 @@ const updateSprite = (obj) => {
 const visibleObject = () => {
     for (let obj in objArray) {
         distance = findDistance(objArray[obj], player);
-        if (distance < 1200) {
+        if (distance < 1200 && objArray[obj].active) {
             visibleObjArray[objArray[obj].id] = objArray[obj];
         } else {
             delete visibleObjArray[objArray[obj].id];
@@ -406,31 +406,11 @@ const userInputListener = () => {
         e = e;
         mapKeys[e.keyCode] = e.type == 'keydown';
         if (mapKeys[87] || mapKeys[83] || mapKeys[65] || mapKeys[68] || mapKeys[82] || mapKeys[70]) { //w
-            this.console.log(player.angle)
-            socket.emit('playerAction', mapKeys)
-            //         player.acceleratePlayer(dt);
+            //        this.console.log(player.angle)
+            if (objArray[`${player.id}`].active) {
+                socket.emit('playerAction', mapKeys)
+            }
         };
-        // if (mapKeys[83]) { //s
-        //     socket.emit('playerAction', mapKeys)
-        //    //           player.decceleratePlayer(dt);
-        // };
-        // if (mapKeys[65]) { //a
-        //     socket.emit('playerAction', mapKeys)
-        //     //           player.angle -= 9;
-        // };
-        // if (mapKeys[68]) { //d
-        //     socket.emit('playerAction', mapKeys)
-        //     //          player.angle += 9;
-        // };
-        // if (mapKeys[82]) { //r
-        //     socket.emit('playerAction', mapKeys)
-        //     //          player.pickUpOre();
-        //     //           player.enterStation();
-        // };
-        // if (mapKeys[70]) { //f
-        //     socket.emit('playerAction', mapKeys)
-        //     //           player.shootBullet(now);
-        // };
     }
 }
 
@@ -442,10 +422,11 @@ const main = () => {
 
 }
 const update = () => {
-    visibleObject();
-    userInputListener();
-    updateEntities()
 
+    userInputListener();
+
+    visibleObject();
+    updateEntities()
 }
 const updateEntities = () => {
     for (let obj in visibleObjArray) {
@@ -456,6 +437,7 @@ const updateEntities = () => {
 const render = () => {
     //   minimapUpdate();
     //    playerDetailUpdate();
+    minimapUpdate();
     ctx.fillStyle = 'black';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let obj in visibleObjArray) {
