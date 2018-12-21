@@ -106,7 +106,7 @@ class _oreTradeObject extends _tradeObject {
             player.credits -= this.obj.value;
             player.ship.cargo.push(new _ore(0, 0, `${this.obj.name}`, `ore${this.obj.name+gameTime}`, ores[this.obj.index]));
             dockedStation.oreStock[oreName]--;
-            updateCreditCargoDisp();
+     //       updateCreditCargoDisp();
             this.updateStocks(dockedStation);
 
         }
@@ -119,7 +119,7 @@ class _oreTradeObject extends _tradeObject {
             player.credits -= this.obj.value;
             player.ship.cargo.push(new _ore(0, 0, `${this.obj.name}`, `ore${this.obj.name+gameTime}`, ores[this.obj.index]));
             dockedStation.oreStock[oreName]--;
-            updateCreditCargoDisp();
+  //          updateCreditCargoDisp();
             this.updateStocks(dockedStation);
         }
     }
@@ -136,7 +136,7 @@ class _oreTradeObject extends _tradeObject {
                     break;
                 }
             }
-            updateCreditCargoDisp();
+   //         updateCreditCargoDisp();
             this.updateStocks(dockedStation);
 
         }
@@ -151,7 +151,7 @@ class _oreTradeObject extends _tradeObject {
                     dockedStation.oreStock[oreName]++;
                 }
             }
-            updateCreditCargoDisp();
+  //          updateCreditCargoDisp();
             this.updateStocks(dockedStation);
         }
     }

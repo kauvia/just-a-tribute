@@ -10,28 +10,40 @@ const playerElements = () => {
 const stationElements = () => {
     stationContainer.className = 'station';
     gameContainer.appendChild(stationContainer);
+    for (let i = 0; i < Object.keys(stationTradeList).length; i++) {
+        let uniqueStationContainer = document.createElement('div');
+        uniqueStationContainer.id = `${Object.keys(stationTradeList)[i]}`
+        uniqueStationContainer.style.display = 'none';
+        stationText = document.createElement('div');
+        stationText.innerHTML = `${Object.keys(stationTradeList)[i]}`
+        uniqueStationContainer.appendChild(stationText);
+        stationContainer.appendChild(uniqueStationContainer)
+        let options = ['Ores', 'Weapons', 'Subsystems', 'Shipyard', 'Undock'];
+        let tradeOptions = ['Ores', 'Weapons', 'Subsystems', 'Shipyard'];
+        uniqueStationContainer.appendChild(createPanels(Object.keys(stationTradeList)[i], options));
+        buttonFunctionality(Object.keys(stationTradeList)[i], tradeOptions);
 
-    let options = ['Ores', 'Weapons', 'Subsystems', 'Shipyard', 'Undock'];
-    let tradeOptions = ['Ores', 'Weapons', 'Subsystems', 'Shipyard'];
-    stationContainer.appendChild(createPanels(options));
-    buttonFunctionality(tradeOptions);
+        let undock = document.getElementById(`${Object.keys(stationTradeList)[i]}-Undock-button`);
+        undock.onclick = function () {
+            for (num in tradeOptions) {
+                let panel = document.getElementById(`${Object.keys(stationTradeList)[i]}-${tradeOptions[num]}-panel`);
+                panel.style.display = 'none';
+            }
+            uniqueStationContainer.style.display = 'none';
+            stationContainer.style.display = 'none';
+            playerAction('undock');
+        };
 
-    let undock = document.getElementById('Undock-button');
-    undock.onclick = function () {
-        for (num in tradeOptions) {
-            let panel = document.getElementById(`${tradeOptions[num]}-panel`);
-            panel.style.display = 'none';
-        }
-        stationContainer.style.display = 'none';
-        //        leaveStation()
-    };
+
+    }
+
 }
 
-const createPanels = (array) => {
+const createPanels = (stationName, array) => {
     let container = document.createElement('div');
     for (let num in array) {
         let button = document.createElement('button');
-        button.id = `${array[num]}-button`;
+        button.id = `${stationName}-${array[num]}-button`;
         button.className = 'button';
         button.innerHTML = `${array[num]}`;
         button.style.width = `${100/array.length}%`
@@ -39,26 +51,26 @@ const createPanels = (array) => {
 
     };
     let playerCreditsCargo = document.createElement('div');
-    playerCreditsCargo.id = 'trade-credits-cargo';
+    playerCreditsCargo.id = `${stationName}-trade-credits-cargo`;
     playerCreditsCargo.style.margin = '10px 5px 0px 5px';
     playerCreditsCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
     container.appendChild(playerCreditsCargo);
 
     for (let num in array) {
         let panel = document.createElement('div');
-        panel.id = `${array[num]}-panel`;
+        panel.id = `${stationName}-${array[num]}-panel`;
         panel.className = 'panel';
         container.appendChild(panel);
         panel.style.display = 'none';
     }
     return container;
 }
-const buttonFunctionality = (array) => {
+const buttonFunctionality = (stationName, array) => {
     for (let num in array) {
-        let button = document.getElementById(`${array[num]}-button`);
+        let button = document.getElementById(`${stationName}-${array[num]}-button`);
         button.onclick = function () {
             for (let num2 in array) {
-                let panel = document.getElementById(`${array[num2]}-panel`);
+                let panel = document.getElementById(`${stationName}-${array[num2]}-panel`);
                 if (num === num2) {
                     panel.style.display = 'block';
                 } else {
@@ -69,48 +81,62 @@ const buttonFunctionality = (array) => {
     }
 }
 const updateCreditCargoDisp = () => {
-    let tradeCreditCargo = document.getElementById('trade-credits-cargo');
-    tradeCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
-    let statusCreditCargo = document.getElementById('status-credit-cargo');
-    statusCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+    for (let i in objArray.stations) {
+        let station = objArray.stations[i];
+        let tradeCreditCargo = document.getElementById(`${station.id}-trade-credits-cargo`);
+        tradeCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+        let statusCreditCargo = document.getElementById('status-credit-cargo');
+        statusCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+        for (let j in stationTradeList[i].ore) {
+            stationTradeList[i].ore[j].updateStocks(station)
+            //     stationTradeList[i].ore[j].updateStocks()
+
+        }
+    }
+
+
+    // let tradeCreditCargo = document.getElementById('trade-credits-cargo');
+    // tradeCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
+    // let statusCreditCargo = document.getElementById('status-credit-cargo');
+    // statusCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
 
 }
 
 const minimapStatics = () => {
     //  minimapContainer.style.backgroundImage = "url('images/minimap.png')";
-    for (let obj in objArray) {
-        if (objArray[obj].type == 'station') {
-            let station = objArray[obj];
-            let stationDisp = document.createElement('img');
-            stationDisp.src = `${station.mapImg}`;
-            stationDisp.style.height = '20px';
-            stationDisp.style.width = '20px';
-            if (stationDisp.src == 'images/skullcross.png') {
-                stationDisp.style.height = '12px';
-                stationDisp.style.width = '16px';
-            }
-            stationDisp.style.position = 'absolute';
-            stationDisp.style.top = `${station.posXY[1]/45}px`;
-            stationDisp.style.left = `${station.posXY[0]/45}px`;
-            minimapContainer.appendChild(stationDisp);
-        } else if (objArray[obj].type == 'asteroid') {
-            let asteroid = objArray[obj];
-            let lastDigit = asteroid.id;
-            lastDigit = parseInt(lastDigit.slice(-1));
-            if (lastDigit % 10 == 0) {
-                let asteroidDisp = document.createElement('img');
-                asteroidDisp.src = `${asteroid.sprite}`;
-                asteroidDisp.style.height = '2px';
-                asteroidDisp.style.width = '2px';
-                asteroidDisp.style.position = 'absolute';
-                asteroidDisp.style.top = `${asteroid.posXY[1]/40}px`;
-                asteroidDisp.style.left = `${asteroid.posXY[0]/40}px`;
-                minimapContainer.appendChild(asteroidDisp);
-            }
+    for (let obj in objArray.stations) {
+        let station = objArray.stations[obj];
+        let stationDisp = document.createElement('img');
+        stationDisp.src = `${station.mapImg}`;
+        stationDisp.style.height = '20px';
+        stationDisp.style.width = '20px';
+        if (stationDisp.src == 'images/skullcross.png') {
+            stationDisp.style.height = '12px';
+            stationDisp.style.width = '16px';
+        }
+        stationDisp.style.position = 'absolute';
+        stationDisp.style.top = `${station.posXY[1]/45}px`;
+        stationDisp.style.left = `${station.posXY[0]/45}px`;
+        minimapContainer.appendChild(stationDisp);
+    }
+    for (let obj in objArray.asteroids) {
+        let asteroid = objArray.asteroids[obj];
+        let lastDigit = asteroid.id;
+        lastDigit = parseInt(lastDigit.slice(-1));
+        if (lastDigit % 10 == 0) {
+            let asteroidDisp = document.createElement('img');
+            asteroidDisp.src = `${asteroid.sprite}`;
+            asteroidDisp.style.height = '2px';
+            asteroidDisp.style.width = '2px';
+            asteroidDisp.style.position = 'absolute';
+            asteroidDisp.style.top = `${asteroid.posXY[1]/40}px`;
+            asteroidDisp.style.left = `${asteroid.posXY[0]/40}px`;
+            minimapContainer.appendChild(asteroidDisp);
         }
     }
-
 }
+
+
 const playerDisp = document.createElement('img');
 
 const minimapUpdate = () => {
@@ -326,5 +352,225 @@ const gameOver = () => {
     gameOverContainer.style.display = 'block';
     menuContainer.style.display = 'none';
 }
+class _tradeObject {
+    constructor(obj) {
+        this.obj = obj;
+        this.display = document.createElement('div');
+        this.display.id = this.obj.name;
+    }
+}
+class _oreTradeObject extends _tradeObject {
+    constructor(obj) {
+        super(obj);
+        this.sellButton = document.createElement('button');
+        this.sellAllButton = document.createElement('button');
+        this.buyButton = document.createElement('button');
+        this.buyAllButton = document.createElement('button');
+        this.stationStock = document.createElement('div');
+        this.oreName = document.createElement('div');
+        this.playerStock = document.createElement('div');
+        this.buy = this.buy.bind(this);
+        this.buyAll = this.buyAll.bind(this);
+        this.sell = this.sell.bind(this);
+        this.sellAll = this.sellAll.bind(this);
 
+    }
+    updateStocks(station) {
+        switch (this.obj.name) {
+            case 'iron':
+                this.stationStock.innerHTML = `In Stock:${station.oreStock.iron}`;
+                break;
+            case 'copper':
+                this.stationStock.innerHTML = `In Stock:${station.oreStock.copper}`;
+                break;
+            case 'uranium':
+                this.stationStock.innerHTML = `In Stock:${station.oreStock.uranium}`;
+                break;
+            case 'gold':
+                this.stationStock.innerHTML = `In Stock:${station.oreStock.gold}`;
+                break;
+        };
+        //  player.oreCounter();
+        switch (this.obj.name) {
+            case 'iron':
+                this.playerStock.innerHTML = `You have:${player.oreCount.iron}`;
+                break;
+            case 'copper':
+                this.playerStock.innerHTML = `You have:${player.oreCount.copper}`;
+                break;
+            case 'uranium':
+                this.playerStock.innerHTML = `You have:${player.oreCount.uranium}`;
+                break;
+            case 'gold':
+                this.playerStock.innerHTML = `You have:${player.oreCount.gold}`;
+                break;
+        }
+    }
+    setupPanel(station) {
+        this.buyButton.innerHTML = 'Buy';
+        this.buyButton.onclick = this.buy;
+        this.buyButton.style.display = 'inline-block';
+        this.buyButton.style.width = '8%';
+        this.display.appendChild(this.buyButton);
+
+        this.buyAllButton.innerHTML = 'Buy All';
+        this.buyAllButton.onclick = this.buyAll;
+        this.buyAllButton.style.display = 'inline-block';
+        this.buyAllButton.style.width = '12%';
+        this.display.appendChild(this.buyAllButton);
+
+        this.updateStocks(station);
+
+        this.stationStock.style.display = 'inline-block';
+        this.stationStock.style.width = '20%';
+        this.display.appendChild(this.stationStock);
+
+        let oreNameString = `${this.obj.name}`;
+        oreNameString = oreNameString.charAt(0).toUpperCase() + oreNameString.slice(1);
+        this.oreName.innerHTML = `${oreNameString}:${this.obj.value}c`;
+        this.oreName.style.display = 'inline-block';
+        this.oreName.style.width = '20%';
+        this.display.appendChild(this.oreName);
+        this.display.style.textAlign = 'center';
+
+
+        this.playerStock.style.display = 'inline-block';
+        this.playerStock.style.width = '20%';
+        this.display.appendChild(this.playerStock);
+
+        this.sellButton.innerHTML = 'Sell';
+        this.sellButton.onclick = this.sell;
+        this.sellButton.style.display = 'inline-block';
+        this.sellButton.style.width = '8%';
+        this.display.appendChild(this.sellButton);
+
+        this.sellAllButton.innerHTML = 'Sell All';
+        this.sellAllButton.onclick = this.sellAll;
+        this.sellAllButton.style.display = 'inline-block';
+        this.sellAllButton.style.width = '12%';
+        this.display.appendChild(this.sellAllButton);
+
+        this.display.style.border = '1px solid black';
+        this.display.style.height = `${100/4}%`;
+    }
+    buy() {
+        playerAction(['buy', player.dockedStation, this.obj])
+    }
+    buyAll() {
+        playerAction(['buyAll', player.dockedStation, this.obj])
+    }
+
+    sell() {
+        playerAction(['sell', player.dockedStation, this.obj])
+
+    }
+    sellAll() {
+        playerAction(['sellAll', player.dockedStation, this.obj])
+
+    }
+}
+
+
+class _weaponTradeObject extends _tradeObject {
+    constructor(obj) {
+        super(obj);
+        this.sellButton = document.createElement('button');
+        this.buyButton = document.createElement('button');
+        this.weaponName = document.createElement('div');
+        this.playerStock = document.createElement('div');
+        this.buy = this.buy.bind(this);
+        this.sell = this.sell.bind(this);
+        this.id = obj.id;
+    }
+    setupPanel(station) {
+        this.buyButton.innerHTML = 'Buy';
+        this.buyButton.onclick = this.buy;
+        this.buyButton.style.display = 'inline-block';
+        this.buyButton.style.width = '8%';
+        this.display.appendChild(this.buyButton);
+
+        this.updateStocks(station);
+
+
+        this.weaponName.innerHTML = `${this.obj.name}:${this.obj.value}c`;
+        this.weaponName.style.display = 'inline-block';
+        this.weaponName.style.width = '20%';
+        this.display.appendChild(this.weaponName);
+        this.display.style.textAlign = 'center';
+
+
+        this.playerStock.style.display = 'inline-block';
+        this.playerStock.style.width = '20%';
+        this.display.appendChild(this.playerStock);
+
+        this.sellButton.innerHTML = 'Sell';
+        this.sellButton.onclick = this.sell;
+        this.sellButton.style.display = 'inline-block';
+        this.sellButton.style.width = '8%';
+        this.display.appendChild(this.sellButton);
+
+        this.display.style.border = '1px solid black';
+        this.display.style.height = `${100/weaponsTradeList.length}%`;
+    }
+    buy() {
+        if (player.credits >= this.obj.value &&
+            player.ship.weaponHardpoints.length < player.ship.maxWeaponHardpoints) {
+            player.credits -= this.obj.value;
+            player.ship.weaponHardpoints.push(weapons[this.id]);
+            //     updateCreditCargoDisp();
+        }
+    }
+    sell() {
+        for (i = 0; i < player.ship.weaponHardpoints.length; i++) {
+            if (player.ship.weaponHardpoints[i].name == this.obj.name) {
+                player.credits += this.obj.value;
+                player.ship.weaponHardpoints.splice(i, 1);
+                //  updateCreditCargoDisp();
+                break;
+
+
+            }
+        }
+
+    }
+}
+
+stationTradeList = {
+    Jilted: {
+        ore: [],
+        weapon: []
+    },
+    Caldera: {
+        ore: [],
+        weapon: []
+    },
+    Minotaur: {
+        ore: [],
+        weapon: []
+    },
+}
+
+const populateTradeObjects = () => {
+    for (i = 0; i < Object.keys(stationTradeList).length; i++) {
+        let station = stationTradeList[Object.keys(stationTradeList)[i]];
+        for (let ore in ores) {
+            station.ore.push(new _oreTradeObject(ores[ore]))
+        }
+        for (let item in station.ore) {
+            let orePanel = document.getElementById(`${Object.keys(stationTradeList)[i]}-Ores-panel`);
+            orePanel.appendChild(station.ore[item].display);
+            station.ore[item].setupPanel(objArray.stations[Object.keys(stationTradeList)[i]]);
+        }
+
+        // for (let weapon in weapons) {
+        //     weaponsTradeList.push(new _weaponTradeObject(weapons[weapon]))
+        // }
+        // for (let weapon in weaponsTradeList) {
+        //     let weaponPanel = document.getElementById('Weapons-panel');
+        //     weaponPanel.appendChild(weaponsTradeList[weapon].display)
+        //     weaponsTradeList[weapon].setupPanel(spaceStationJilted)
+
+        // }
+    }
+}
 menuScreenSetup();

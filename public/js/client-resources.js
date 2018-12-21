@@ -110,6 +110,8 @@ const ores = [{
     height: 16,
     numberOfFrames: 10,
     ticksPerFrame: 8,
+    value: 100,
+
 }, {
     index: 1,
     name: 'copper',
@@ -118,6 +120,8 @@ const ores = [{
     height: 16,
     numberOfFrames: 10,
     ticksPerFrame: 8,
+    value: 150,
+
 }, {
     index: 2,
     name: 'uranium',
@@ -126,6 +130,8 @@ const ores = [{
     height: 16,
     numberOfFrames: 10,
     ticksPerFrame: 8,
+    value: 250,
+
 }, {
     index: 3,
     name: 'gold',
@@ -134,6 +140,8 @@ const ores = [{
     height: 16,
     numberOfFrames: 10,
     ticksPerFrame: 8,
+    value: 450,
+
 }]
 const asteroids = [{
     name: 'ferrous',
@@ -314,6 +322,7 @@ window.resources.load([
 for (let ship in ships) {
     window.resources.load(ships[ship].img)
 }
+
 //helper functions
 const ranN = (num) => Math.floor(Math.random() * num); //return random number from 0-num
 const toRad = (angleInDegree) => angleInDegree * Math.PI / 180;
@@ -327,8 +336,22 @@ let player = {
     posXY: [undefined, undefined],
     dispXY: [300, 300]
 };
-const objArray = {};
-const visibleObjArray = {};
+const objArray = {
+    asteroids: {},
+    ores:{},
+    stars: {},
+    stations: {},
+    bullets: {},
+    ships: {}
+};
+const visibleObjArray = {
+    asteroids: {},
+    ores:{},
+    stars: {},
+    stations: {},
+    bullets: {},
+    ships: {}
+};
 
 const gameContainer = document.getElementById('container');
 const secondaryContainer = document.getElementById('secondary-container');
@@ -386,14 +409,15 @@ const updateSprite = (obj) => {
 }
 
 
-const visibleObject = () => {
-    for (let obj in objArray) {
-        distance = findDistance(objArray[obj], player);
-        if (distance < 1200 && objArray[obj].active) {
-            visibleObjArray[objArray[obj].id] = objArray[obj];
-        } else {
-            delete visibleObjArray[objArray[obj].id];
+const visibleObject = (type) => {
+   // console.log(objArray[type])
 
+    for (let obj in objArray[type]) {
+        distance = findDistance(objArray[type][obj], player);
+        if (distance < 1200 && objArray[type][obj].active) {
+            visibleObjArray[type][objArray[type][obj].id] = objArray[type][obj];
+        } else {
+            delete visibleObjArray[type][objArray[type][obj].id];
         }
     }
 }
@@ -407,14 +431,15 @@ const userInputListener = () => {
         mapKeys[e.keyCode] = e.type == 'keydown';
         if (mapKeys[87] || mapKeys[83] || mapKeys[65] || mapKeys[68] || mapKeys[82] || mapKeys[70]) { //w
             //        this.console.log(player.angle)
-            if (objArray[`${player.id}`].active) {
-                socket.emit('playerAction', mapKeys)
+            if (objArray.ships[`${player.id}`].active) {
+                playerAction();
             }
         };
     }
 }
 
 //client side rendering loop
+const types=['stars','ores','asteroids','stations','bullets','ships'];
 const main = () => {
     update();
     render();
@@ -425,22 +450,29 @@ const update = () => {
 
     userInputListener();
 
-    visibleObject();
+    for (let type in types){
+        visibleObject(types[type]);
+
+    }
     updateEntities()
 }
 const updateEntities = () => {
-    for (let obj in visibleObjArray) {
-        updateSprite(visibleObjArray[obj]);
+    for (let array in visibleObjArray) {
+        for (let obj in visibleObjArray[array]) {
+            updateSprite(visibleObjArray[array][obj]);
+        }
     }
 
 }
 const render = () => {
     //   minimapUpdate();
-    //    playerDetailUpdate();
+   playerDetailUpdate();
     minimapUpdate();
     ctx.fillStyle = 'black';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let obj in visibleObjArray) {
-        renderSprite(visibleObjArray[obj]);
+    for (let array in visibleObjArray) {
+        for (let obj in visibleObjArray[array]) {
+            renderSprite(visibleObjArray[array][obj]);
+        }
     }
 }
