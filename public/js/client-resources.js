@@ -4,7 +4,7 @@ const exhausts = [{
     width: 288,
     height: 16,
     numberOfFrames: 18,
-    ticksPerFrame: 1,
+    ticksPerFrame: 2,
 
 }]
 const bullets = [{
@@ -36,7 +36,45 @@ const bullets = [{
     numberOfFrames: 1,
     ticksPerFrame: 1,
 }]
+const weapons = [{
+    name: 'Pea shooter',
+    img: 'images/bullet1.png',
+    id: 0,
+    bulletVelocity: 600,
+    rateOfFire: 500,
+    energyUsage: 50,
+    value: 1000,
+    dissipation: 20000,
 
+}, {
+    name: 'Rocket launcher',
+    img: 'images/rocket1.png',
+    id: 1,
+    bulletVelocity: 400,
+    rateOfFire: 300,
+    energyUsage: 100,
+    value: 1000,
+    dissipation: 5000,
+}, {
+    name: 'F&F missile launcher',
+    img: 'images/missile1.png',
+    id: 2,
+    bulletVelocity: 350,
+    rateOfFire: 500,
+    energyUsage: 100,
+    value: 1000,
+    dissipation: 10000,
+
+}, {
+    name: 'C-beam',
+    img: 'images/beam1.png',
+    id: 3,
+    bulletVelocity: 2000,
+    rateOfFire: 200,
+    energyUsage: 30,
+    value: 1000,
+    dissipation: 80,
+}];
 const ships = [{
     name: 'Mercury',
     img: 'images/ship1.png',
@@ -338,7 +376,7 @@ let player = {
 };
 const objArray = {
     asteroids: {},
-    ores:{},
+    ores: {},
     stars: {},
     stations: {},
     bullets: {},
@@ -346,9 +384,10 @@ const objArray = {
 };
 const visibleObjArray = {
     asteroids: {},
-    ores:{},
+    ores: {},
     stars: {},
     stations: {},
+    exhausts: {},
     bullets: {},
     ships: {}
 };
@@ -376,7 +415,7 @@ const renderSprite = (obj) => {
     if (obj.active) {
         ctx.setTransform(1, 0, 0, 1, Math.floor(obj.dispXY[0]), Math.floor(obj.dispXY[1]))
         //    console.log(obj)
-        if (obj.type != 'star') {
+        if (obj.type != 'star' || obj.type != 'exhaust') {
             ctx.rotate(toRad(obj.angle));
         }
         if (obj.numberOfFrames > 1) {
@@ -402,7 +441,7 @@ const updateSprite = (obj) => {
             }
         }
     }
-    if (!obj.isPlayer) {
+    if (obj.id != player.id) {
         obj.dispXY[0] = obj.posXY[0] - player.posXY[0] + player.dispXY[0];
         obj.dispXY[1] = obj.posXY[1] - player.posXY[1] + player.dispXY[1];
     }
@@ -410,7 +449,7 @@ const updateSprite = (obj) => {
 
 
 const visibleObject = (type) => {
-   // console.log(objArray[type])
+    // console.log(objArray[type])
 
     for (let obj in objArray[type]) {
         distance = findDistance(objArray[type][obj], player);
@@ -425,11 +464,11 @@ const visibleObject = (type) => {
 const mapKeys = {};
 
 const userInputListener = () => {
-    //  console.log(mapKeys);
+   //   console.log(mapKeys);
     onkeydown = onkeyup = function (e) {
         e = e;
         mapKeys[e.keyCode] = e.type == 'keydown';
-        if (mapKeys[87] || mapKeys[83] || mapKeys[65] || mapKeys[68] || mapKeys[82] || mapKeys[70]) { //w
+        if (mapKeys[87] || mapKeys[83] || mapKeys[65] || mapKeys[69] || mapKeys[68] || mapKeys[82] || mapKeys[70]) { //w
             //        this.console.log(player.angle)
             if (objArray.ships[`${player.id}`].active) {
                 playerAction();
@@ -439,7 +478,7 @@ const userInputListener = () => {
 }
 
 //client side rendering loop
-const types=['stars','ores','asteroids','stations','bullets','ships'];
+const types = ['stars', 'ores', 'asteroids', 'stations', 'exhausts', 'bullets', 'ships'];
 const main = () => {
     update();
     render();
@@ -450,9 +489,8 @@ const update = () => {
 
     userInputListener();
 
-    for (let type in types){
+    for (let type in types) {
         visibleObject(types[type]);
-
     }
     updateEntities()
 }
@@ -460,19 +498,73 @@ const updateEntities = () => {
     for (let array in visibleObjArray) {
         for (let obj in visibleObjArray[array]) {
             updateSprite(visibleObjArray[array][obj]);
+            if (visibleObjArray[array][obj].isAccel) {
+                let ship = visibleObjArray[array][obj];
+                let exhaust = new _exhaust(ship.posXY[0], ship.posXY[1], exhausts[0], `${ship.id+Date.now()}`);
+                visibleObjArray.exhausts[exhaust.id] = exhaust;
+            }
         }
     }
-
+    for (let exhaust in visibleObjArray.exhausts) {
+        visibleObjArray.exhausts[exhaust].updateExhaust()
+    }
 }
 const render = () => {
     //   minimapUpdate();
-   playerDetailUpdate();
+    playerDetailUpdate();
     minimapUpdate();
     ctx.fillStyle = 'black';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // for (let exhaust in visibleObjArray.exhausts) {
+    //     visibleObjArray.exhausts[exhaust].renderExhaust()
+    // }
     for (let array in visibleObjArray) {
         for (let obj in visibleObjArray[array]) {
-            renderSprite(visibleObjArray[array][obj]);
+            if (visibleObjArray[array][obj].active) {
+                renderSprite(visibleObjArray[array][obj]);
+            }
         }
+    };
+
+}
+
+class _exhaust {
+    constructor(posX, posY, sprite, id) {
+        this.posXY = [posX, posY];
+        this.type = 'exhaust';
+        this.id = id;
+        this.active = true;
+        this.sprite = sprite;
+        this.width = this.sprite.width;
+        this.height = this.sprite.height;
+        this.ticksPerFrame = this.sprite.ticksPerFrame;
+        this.numberOfFrames = this.sprite.numberOfFrames;
+        this.dispXY = [0, 0];
+        this.frameIndex = 0;
+        this.tickCount = 1;
+        this.sprite = this.sprite.img;
     }
+    updateExhaust() {
+        this.tickCount++;
+        if (this.tickCount > this.ticksPerFrame) {
+            this.tickCount = 0;
+
+            if (this.frameIndex + 1 >= this.numberOfFrames) {
+                if (visibleObjArray.exhausts[this.id]) {
+                    delete visibleObjArray.exhausts[this.id]
+                }
+            } else {
+                this.frameIndex++
+            }
+        };
+        this.dispXY[0] = this.posXY[0] - player.posXY[0] + player.dispXY[0];
+        this.dispXY[1] = this.posXY[1] - player.posXY[1] + player.dispXY[1];
+
+    }
+    // renderExhaust() {
+    //     ctx.setTransform(1, 0, 0, 1, Math.floor(this.dispXY[0]), Math.floor(this.dispXY[1]))
+    //     ctx.drawImage(resources.get(this.sprite), this.frameIndex * this.width / this.numberOfFrames, 0, this.width / this.numberOfFrames, this.height, -this.width / this.numberOfFrames / 2, -this.height / 2, this.width / this.numberOfFrames, this.height);
+    //     ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+    // }
 }

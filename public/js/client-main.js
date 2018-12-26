@@ -27,7 +27,6 @@ const playerInit = packet => {
     for (let player in packet[2]) {
         objArray.ships[packet[2][player].id] = packet[2][player];
     }
-    console.log(packet[1])
     for (let type in packet[1]) {
         if (type == 'spaceStations') {
             for (let obj in packet[1][type]) {
@@ -44,6 +43,12 @@ const playerInit = packet => {
     for (let asteroid in packet[3].asteroid) {
         objArray.asteroids[packet[3].asteroid[asteroid].id] = packet[3].asteroid[asteroid];
 
+    }
+    for (let arr in packet[3].ship) {
+        for (let obj in packet[3].ship[arr]) {
+            let ship = packet[3].ship[arr][obj];
+            objArray.ships[ship.id] = ship;
+        }
     }
     menuContainer.style.display = 'none';
     playerElements();
@@ -69,21 +74,22 @@ socket.on('newPosition', pack => {
         for (let i in pack) {
             let obj = pack[i];
             if (obj.id == player.id) {
+                player.isAccel = obj.accel;
+                player.active = obj.active;
                 player.ship.energy = obj.energy;
                 player.ship.shield = obj.shield;
                 player.ship.hull = obj.hull;
                 player.posXY[0] = obj.x;
                 player.posXY[1] = obj.y;
                 player.angle = obj.angle;
-                //          } else if (obj.type == 'player' || obj.type == 'pirate' || obj.type == 'raider' || obj.type == 'trader' || obj.type == 'police' || obj.type == 'miner') {
-            } else if (obj.type == 'ship') {
+            } else if (obj.type == 'player' || obj.type == 'pirate' || obj.type == 'raider' || obj.type == 'trader' || obj.type == 'police' || obj.type == 'miner') {
                 let ship = objArray.ships[obj.id];
-                ship.ship.energy = obj.energy;
-                ship.ship.shield = obj.shield;
-                ship.ship.hull = obj.hull;
+                ship.isAccel = obj.accel;
+
                 ship.posXY[0] = obj.x;
                 ship.posXY[1] = obj.y;
                 ship.angle = obj.angle;
+                ship.active = obj.active;
             } else if (obj.type == 'bullet') {
                 let bullet = objArray.bullets[obj.id];
                 bullet.posXY[0] = obj.x;
@@ -108,8 +114,6 @@ socket.on('newPosition', pack => {
 
 socket.on('removeObj', pack => {
     if (player.id) {
-        // delete objArray[pack.id];
-        // delete visibleObjArray[pack.id];
         let obj = pack;
         if (obj.type == 'player' || obj.type == 'pirate' || obj.type == 'raider' || obj.type == 'trader' || obj.type == 'police' || obj.type == 'miner') {
             delete objArray.ships[obj.id];
@@ -128,12 +132,10 @@ socket.on('removeObj', pack => {
 })
 socket.on('addObj', pack => {
     if (player.id) {
-        //   objArray[pack.id] = pack;
         let obj = pack;
-        console.log(pack)
         if (obj.type == 'player' || obj.type == 'pirate' || obj.type == 'raider' || obj.type == 'trader' || obj.type == 'police' || obj.type == 'miner') {
             objArray.ships[obj.id] = obj;
-
+            console.log('new ship =' + obj)
         } else if (obj.type == 'bullet') {
             objArray.bullets[obj.id] = obj;
 
@@ -173,8 +175,9 @@ socket.on('trade update', pack => {
         player.oreCount = pack[1];
         player.credits = pack[2];
         player.ship.cargo = pack[3];
+        player.ship.weaponHardpoints = pack[4];
     }
-    for (let i = 4; i < pack.length; i++) {
+    for (let i = 5; i < pack.length; i++) {
         objArray.stations[pack[i][1]].oreStock = pack[i][0]
     }
     updateCreditCargoDisp();

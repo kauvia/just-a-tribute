@@ -89,8 +89,9 @@ const updateCreditCargoDisp = () => {
         statusCreditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
         for (let j in stationTradeList[i].ore) {
             stationTradeList[i].ore[j].updateStocks(station)
-            //     stationTradeList[i].ore[j].updateStocks()
-
+        }
+        for (let j in stationTradeList[i].weapon) {
+            stationTradeList[i].weapon[j].updateStocks()
         }
     }
 
@@ -197,7 +198,7 @@ const playerDetailSetup = () => {
     playerContainer.appendChild(creditCargo);
     creditCargo.style.textAlign = 'left';
 
-    playerAndShip.innerHTML = `Pilot : ${player.id}<br>  Ship : ${player.ship.name}`;
+    playerAndShip.innerHTML = `Pilot : ${player.name}<br>  Ship : ${player.ship.name}`;
     creditCargo.innerHTML = `Credits = ${player.credits}c Cargo = ${player.ship.cargo.length}/${player.ship.maxCargo}`;
 
 }
@@ -454,18 +455,18 @@ class _oreTradeObject extends _tradeObject {
         this.display.style.height = `${100/4}%`;
     }
     buy() {
-        playerAction(['buy', player.dockedStation, this.obj])
+        playerAction(['buy', player.dockedStation, this.obj, 'ore'])
     }
     buyAll() {
-        playerAction(['buyAll', player.dockedStation, this.obj])
+        playerAction(['buyAll', player.dockedStation, this.obj, 'ore'])
     }
 
     sell() {
-        playerAction(['sell', player.dockedStation, this.obj])
+        playerAction(['sell', player.dockedStation, this.obj, 'ore'])
 
     }
     sellAll() {
-        playerAction(['sellAll', player.dockedStation, this.obj])
+        playerAction(['sellAll', player.dockedStation, this.obj, 'ore'])
 
     }
 }
@@ -489,12 +490,10 @@ class _weaponTradeObject extends _tradeObject {
         this.buyButton.style.width = '8%';
         this.display.appendChild(this.buyButton);
 
-        this.updateStocks(station);
-
 
         this.weaponName.innerHTML = `${this.obj.name}:${this.obj.value}c`;
         this.weaponName.style.display = 'inline-block';
-        this.weaponName.style.width = '20%';
+        this.weaponName.style.width = '40%';
         this.display.appendChild(this.weaponName);
         this.display.style.textAlign = 'center';
 
@@ -503,6 +502,8 @@ class _weaponTradeObject extends _tradeObject {
         this.playerStock.style.width = '20%';
         this.display.appendChild(this.playerStock);
 
+        this.updateStocks();
+
         this.sellButton.innerHTML = 'Sell';
         this.sellButton.onclick = this.sell;
         this.sellButton.style.display = 'inline-block';
@@ -510,28 +511,30 @@ class _weaponTradeObject extends _tradeObject {
         this.display.appendChild(this.sellButton);
 
         this.display.style.border = '1px solid black';
-        this.display.style.height = `${100/weaponsTradeList.length}%`;
+        this.display.style.height = `${100/4}%`;
     }
-    buy() {
-        if (player.credits >= this.obj.value &&
-            player.ship.weaponHardpoints.length < player.ship.maxWeaponHardpoints) {
-            player.credits -= this.obj.value;
-            player.ship.weaponHardpoints.push(weapons[this.id]);
-            //     updateCreditCargoDisp();
-        }
-    }
-    sell() {
-        for (i = 0; i < player.ship.weaponHardpoints.length; i++) {
-            if (player.ship.weaponHardpoints[i].name == this.obj.name) {
-                player.credits += this.obj.value;
-                player.ship.weaponHardpoints.splice(i, 1);
-                //  updateCreditCargoDisp();
-                break;
-
-
+    updateStocks() {
+        for (let i in player.ship.weaponHardpoints) {
+            let equipped = player.ship.weaponHardpoints[i];
+            if (equipped.name != this.obj.name) {
+                this.playerStock.innerHTML = '';
             }
         }
-
+        for (let i in player.ship.weaponHardpoints) {
+            let equipped = player.ship.weaponHardpoints[i];
+            if (equipped.name == this.obj.name) {
+                this.playerStock.innerHTML = `Slot ${parseInt(i)+1}`
+            }
+        }
+        if (player.ship.weaponHardpoints.length == 0){
+            this.playerStock.innerHTML='';
+        }
+    }
+    buy() {
+        playerAction(['buy', player.dockedStation, this.obj, 'weapon'])
+    }
+    sell() {
+        playerAction(['sell', player.dockedStation, this.obj, 'weapon'])
     }
 }
 
@@ -561,16 +564,15 @@ const populateTradeObjects = () => {
             orePanel.appendChild(station.ore[item].display);
             station.ore[item].setupPanel(objArray.stations[Object.keys(stationTradeList)[i]]);
         }
+        for (let weapon in weapons) {
+            station.weapon.push(new _weaponTradeObject(weapons[weapon]))
+        }
+        for (let item in station.weapon) {
+            let weaponPanel = document.getElementById(`${Object.keys(stationTradeList)[i]}-Weapons-panel`);
+            weaponPanel.appendChild(station.weapon[item].display)
+            station.weapon[item].setupPanel(objArray.stations[Object.keys(stationTradeList)[i]])
 
-        // for (let weapon in weapons) {
-        //     weaponsTradeList.push(new _weaponTradeObject(weapons[weapon]))
-        // }
-        // for (let weapon in weaponsTradeList) {
-        //     let weaponPanel = document.getElementById('Weapons-panel');
-        //     weaponPanel.appendChild(weaponsTradeList[weapon].display)
-        //     weaponsTradeList[weapon].setupPanel(spaceStationJilted)
-
-        // }
+        }
     }
 }
 menuScreenSetup();

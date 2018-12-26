@@ -338,7 +338,7 @@ class _enemy extends _gameObject {
     }
     updateEnemy(dt, now) {
         if (this.angle != 360) {
-            this.angle = this.angle % 360;
+            this.angle = Math.abs(this.angle % 360);
         }
         if (this.angle == 0) {
             this.angle = 360
