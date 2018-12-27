@@ -93,6 +93,9 @@ const updateCreditCargoDisp = () => {
         for (let j in stationTradeList[i].weapon) {
             stationTradeList[i].weapon[j].updateStocks()
         }
+        for (let j in stationTradeList[i].subsystem) {
+            stationTradeList[i].subsystem[j].updateStocks()
+        }
     }
 
 
@@ -483,7 +486,7 @@ class _weaponTradeObject extends _tradeObject {
         this.sell = this.sell.bind(this);
         this.id = obj.id;
     }
-    setupPanel(station) {
+    setupPanel() {
         this.buyButton.innerHTML = 'Buy';
         this.buyButton.onclick = this.buy;
         this.buyButton.style.display = 'inline-block';
@@ -526,8 +529,8 @@ class _weaponTradeObject extends _tradeObject {
                 this.playerStock.innerHTML = `Slot ${parseInt(i)+1}`
             }
         }
-        if (player.ship.weaponHardpoints.length == 0){
-            this.playerStock.innerHTML='';
+        if (player.ship.weaponHardpoints.length == 0) {
+            this.playerStock.innerHTML = '';
         }
     }
     buy() {
@@ -538,19 +541,98 @@ class _weaponTradeObject extends _tradeObject {
     }
 }
 
+class _subsystemTradeObject extends _tradeObject {
+    constructor(obj) {
+        super(obj);
+        this.sellButton = document.createElement('button');
+        this.buyButton = document.createElement('button');
+        this.subsystemName = document.createElement('div');
+        this.playerStock = document.createElement('div');
+        this.buy = this.buy.bind(this);
+        this.sell = this.sell.bind(this);
+        this.id = obj.id;
+    }
+    setupPanel() {
+        this.buyButton.innerHTML = 'Buy';
+        this.buyButton.onclick = this.buy;
+        this.buyButton.style.display = 'inline-block';
+        this.buyButton.style.width = '8%';
+        this.display.appendChild(this.buyButton);
+
+
+        this.subsystemName.innerHTML = `${this.obj.name}:${this.obj.value}c`;
+        this.subsystemName.style.display = 'inline-block';
+        this.subsystemName.style.width = '40%';
+        this.display.appendChild(this.subsystemName);
+        this.display.style.textAlign = 'center';
+
+
+        this.playerStock.style.display = 'inline-block';
+        this.playerStock.style.width = '20%';
+        this.display.appendChild(this.playerStock);
+
+        this.updateStocks();
+
+        this.sellButton.innerHTML = 'Sell';
+        this.sellButton.onclick = this.sell;
+        this.sellButton.style.display = 'inline-block';
+        this.sellButton.style.width = '8%';
+        this.display.appendChild(this.sellButton);
+
+        this.display.style.border = '1px solid black';
+        this.display.style.height = `${100/4}%`;
+    }
+    updateStocks() {
+        for (let i in player.ship.subsystems) {
+            let equipped = player.ship.subsystems[i];
+            if (equipped.name != this.obj.name) {
+                this.playerStock.innerHTML = '';
+            }
+        }
+        let tempArr = [];
+        for (let i in player.ship.subsystems) {
+            let equipped = player.ship.subsystems[i];
+            if (equipped.name == this.obj.name) {
+                tempArr.push(parseInt(i) + 1);
+                console.log(equipped.name, this.obj.name)
+            }
+            console.log(tempArr)
+            if (tempArr.length > 0) {
+                this.playerStock.innerHTML = `Slot ${tempArr}`
+            }
+        }
+        if (player.ship.subsystems.length == 0) {
+            this.playerStock.innerHTML = '';
+        }
+    }
+    buy() {
+        playerAction(['buy', player.dockedStation, this.obj, 'subsystem'])
+    }
+    sell() {
+        playerAction(['sell', player.dockedStation, this.obj, 'subsystem'])
+    }
+}
 stationTradeList = {
     Jilted: {
         ore: [],
-        weapon: []
+        weapon: [],
+        subsystem: [],
     },
     Caldera: {
         ore: [],
-        weapon: []
+        weapon: [],
+        subsystem: [],
     },
     Minotaur: {
         ore: [],
-        weapon: []
+        weapon: [],
+        subsystem: [],
     },
+    Gallant: {
+        ore: [],
+        weapon: [],
+        subsystem: [],
+    }
 }
 
 const populateTradeObjects = () => {
@@ -571,6 +653,14 @@ const populateTradeObjects = () => {
             let weaponPanel = document.getElementById(`${Object.keys(stationTradeList)[i]}-Weapons-panel`);
             weaponPanel.appendChild(station.weapon[item].display)
             station.weapon[item].setupPanel(objArray.stations[Object.keys(stationTradeList)[i]])
+        }
+        for (let subsystem in subsystems) {
+            station.subsystem.push(new _subsystemTradeObject(subsystems[subsystem]))
+        }
+        for (let item in station.subsystem) {
+            let subsystemPanel = document.getElementById(`${Object.keys(stationTradeList)[i]}-Subsystems-panel`);
+            subsystemPanel.appendChild(station.subsystem[item].display)
+            station.subsystem[item].setupPanel(objArray.stations[Object.keys(stationTradeList)[i]])
 
         }
     }

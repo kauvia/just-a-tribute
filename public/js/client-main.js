@@ -174,10 +174,11 @@ socket.on('trade update', pack => {
     if (pack[0] == player.id) {
         player.oreCount = pack[1];
         player.credits = pack[2];
-        player.ship.cargo = pack[3];
-        player.ship.weaponHardpoints = pack[4];
+        player.ship = pack[3];
+  //      player.ship.weaponHardpoints = pack[4];
+  //      player.ship.subsystems = pack[5];
     }
-    for (let i = 5; i < pack.length; i++) {
+    for (let i = 4; i < pack.length; i++) {
         objArray.stations[pack[i][1]].oreStock = pack[i][0]
     }
     updateCreditCargoDisp();

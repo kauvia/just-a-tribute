@@ -106,7 +106,7 @@ const loginHandler = (data, socket) => {
         io.to(data.id).emit('login validation', [false, 'no such user']);
         console.log('no such user')
       } else if (docs[0].password == data.password) {
-        let player = generatePlayer(4700, 5300, data.id, 0, 0);
+        let player = generatePlayer(2000, 8000, data.id, 0, 0);
         player.name = data.username;
         PLAYER_LIST[data.id] = player;
         io.to(data.id).emit('login validation', [true, staticObjArray, PLAYER_LIST, dynamicObjArray]);
@@ -267,7 +267,33 @@ const tradeHandler = (id, pack) => {
       break;
     case 'subsystem':
       {
-
+        let subsystem = pack[2];
+        switch (pack[0]) {
+          case 'buy':
+            {
+              if (player.credits >= subsystem.value && player.ship.subsystems.length < player.ship.maxSubsystems) {
+                player.ship.subsystems.push(resources.subsystems[subsystem.id])
+                player.credits -= subsystem.value;
+                player.updateShip();
+                player.updateTrade();
+              }
+            }
+            break;
+          case 'sell':
+            {
+              for (let i in player.ship.subsystems) {
+                let equipped = player.ship.subsystems[i];
+                if (equipped.name == subsystem.name) {
+                  player.ship.subsystems.splice(i, 1);
+                  player.credits += subsystem.value;
+                  player.updateShip();
+                  player.updateTrade();
+                  break;
+                }
+              }
+            }
+            break;
+        }
       }
       break;
     case 'shipyard':
@@ -381,7 +407,11 @@ const shipCollision = (bulletArray, targetArray) => {
               }
               target.ship.hull = 200;
               target.ship.shield = 200;
+              target.ship.subsystems = [];
+              target.ship.cargo = [];
               target.posXY = [4900 + ranN(200), 4900 + ranN(200)];
+              target.updateShip();
+              target.updateTrade();
               io.to(`${target.id}`).emit('death', bullet.owner.id);
               console.log('a player died')
             }
@@ -499,6 +529,8 @@ class _ship {
     this.weaponHardpoints = [];
     this.maxCargo = ship.maxCargo;
     this.cargo = [];
+    this.subsystems = [];
+    this.maxSubsystems = ship.maxSubsystems;
     this.value = ship.value;
   }
 }
@@ -581,6 +613,25 @@ class _player extends _gameObject {
       gold: 0,
     };
   }
+  updateShip() {
+    let baseEnergy = resources.ships[this.ship.id].maxEnergy;
+    let baseShield = resources.ships[this.ship.id].maxShield;
+    let baseHull = resources.ships[this.ship.id].maxHull;
+    let baseCargo = resources.ships[this.ship.id].maxCargo;
+
+    for (let i in this.ship.subsystems) {
+      let subsystem = this.ship.subsystems[i];
+      baseEnergy += subsystem.maxEnergy;
+      baseShield += subsystem.maxShield;
+      baseHull += subsystem.maxHull;
+      baseCargo += subsystem.maxCargo;
+    }
+    this.ship.maxEnergy = baseEnergy;
+    this.ship.maxShield = baseShield;
+    this.ship.maxHull = baseHull;
+    this.ship.maxCargo = baseCargo;
+    console.log(this.ship);
+  }
   updateBoundary() {
     if (this.posXY[0] < -350) {
       this.posXY[0] = 10350;
@@ -598,7 +649,8 @@ class _player extends _gameObject {
   updateTrade() {
     let pack = [];
     this.oreCounter();
-    pack.push(this.id, this.oreCount, this.credits, this.ship.cargo, this.ship.weaponHardpoints);
+    //  pack.push(this.id, this.oreCount, this.credits, this.ship.cargo, this.ship.weaponHardpoints,this.ship.subsystems);
+    pack.push(this.id, this.oreCount, this.credits, this.ship);
     for (let stat in staticObjArray.spaceStations) {
       let station = staticObjArray.spaceStations[stat];
       pack.push([station.oreStock, station.id])
@@ -671,9 +723,13 @@ class _player extends _gameObject {
   rechargeEnergyShield(dt) {
     if (this.ship.shield < this.ship.maxShield) {
       this.ship.shield += dt * 10;
+    } else if (this.ship.shield > this.ship.maxShield) {
+      this.ship.shield = this.ship.maxShield
     }
     if (this.ship.energy < this.ship.maxEnergy) {
-      this.ship.energy++;
+      this.ship.energy += .5;
+    } else if (this.ship.energy > this.ship.maxEnergy) {
+      this.ship.energy = this.ship.maxEnergy
     }
   }
   pickUpOre() {
@@ -691,6 +747,7 @@ class _player extends _gameObject {
           io.to(`${this.id}`).emit('oreCountUpdate', this.oreCount);
           removeObjUpdate(false, false, oreArray[ore])
           delete dynamicObjArray.ore[ore];
+          this.updateTrade();
         } else {
           console.log('cargo is full!!')
         }
@@ -830,9 +887,13 @@ class _npc extends _gameObject {
   rechargeEnergyShield(dt) {
     if (this.ship.shield < this.ship.maxShield) {
       this.ship.shield += dt * 10;
+    } else if (this.ship.shield > this.ship.maxShield) {
+      this.ship.shield = this.ship.maxShield
     }
     if (this.ship.energy < this.ship.maxEnergy) {
-      this.ship.energy++;
+      this.ship.energy += .5;
+    } else if (this.ship.energy > this.ship.maxEnergy) {
+      this.ship.energy = this.ship.maxEnergy
     }
   }
   killVelocity(dt, multiplier = 1) {
@@ -1187,6 +1248,7 @@ for (let field in asteroidFields) {
 generateStation(4500, 4500, 1);
 generateStation(1000, 1000, 2);
 generateStation(8000, 6500, 0);
+generateStation(2000,8000, 3);
 generateStars(3000);
 
 // for (let i = 0; i < 10; i++) {
@@ -1246,7 +1308,7 @@ const badBoyFinder = () => {
     }
   }
 }
-generateNpc('trader', 60, 4700, 5400,1000,1000);
-generateNpc('police', 30, 4700, 5400,1000,1000);
-generateNpc('pirate', 20, 500, 500,1000,1000);
-generateNpc('raider', 20, 500, 500,1000,1000);
+generateNpc('trader', 60, 4700, 5400, 1000, 1000);
+generateNpc('police', 30, 4700, 5400, 1000, 1000);
+generateNpc('pirate', 20, 500, 500, 1000, 1000);
+generateNpc('raider', 20, 500, 500, 1000, 1000);

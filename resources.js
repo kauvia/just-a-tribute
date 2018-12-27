@@ -16,7 +16,7 @@ module.exports = {
         height: 5,
         numberOfFrames: 4,
         ticksPerFrame: 6,
-        damage: 50,
+        damage: 75,
     }, {
         name: 'dumbfire-rocket',
         img: 'images/rocket1.png',
@@ -24,7 +24,6 @@ module.exports = {
         height: 16,
         numberOfFrames: 10,
         ticksPerFrame: 4,
-
         damage: 100,
     }, {
         name: 'homing-missile',
@@ -38,19 +37,19 @@ module.exports = {
     }, {
         name: 'c-beam',
         img: 'images/beam1.png',
-        width: 3,
-        height: 200,
+        width: 5,
+        height: 100,
         numberOfFrames: 1,
         ticksPerFrame: 1,
-        damage: 10,
+        damage: 25,
     }],
     weapons: [{
         name: 'Pea shooter',
         img: 'images/bullet1.png',
         id: 0,
-        bulletVelocity: 600,
+        bulletVelocity: 800,
         rateOfFire: 500,
-        energyUsage: 50,
+        energyUsage: 25,
         value: 1000,
         dissipation: 20000,
 
@@ -58,18 +57,18 @@ module.exports = {
         name: 'Rocket launcher',
         img: 'images/rocket1.png',
         id: 1,
-        bulletVelocity: 400,
+        bulletVelocity: 650,
         rateOfFire: 300,
-        energyUsage: 100,
+        energyUsage: 50,
         value: 1000,
         dissipation: 5000,
     }, {
         name: 'F&F missile launcher',
         img: 'images/missile1.png',
         id: 2,
-        bulletVelocity: 350,
+        bulletVelocity: 450,
         rateOfFire: 500,
-        energyUsage: 100,
+        energyUsage: 75,
         value: 1000,
         dissipation: 10000,
 
@@ -79,11 +78,45 @@ module.exports = {
         id: 3,
         bulletVelocity: 2000,
         rateOfFire: 200,
-        energyUsage: 30,
+        energyUsage: 15,
         value: 1000,
-        dissipation: 80,
+        dissipation: 200,
     }],
-
+    subsystems: [{
+            name: 'Energy capacitator',
+            id: 0,
+            maxEnergy: 100,
+            maxShield: 0,
+            maxHull: 0,
+            maxCargo: 0,
+            value: 1000,
+        },
+        {
+            name: 'Shield bank',
+            id: 1,
+            maxEnergy: 0,
+            maxShield: 100,
+            maxHull: 0,
+            maxCargo: 0,
+            value: 1000,
+        }, {
+            name: 'Reinforced hull',
+            id: 2,
+            maxEnergy: 0,
+            maxShield: 0,
+            maxHull: 100,
+            maxCargo: 0,
+            value: 1000,
+        }, {
+            name: 'Retrofitted cargobay',
+            id: 3,
+            maxEnergy: 0,
+            maxShield: 0,
+            maxHull: 0,
+            maxCargo: 10,
+            value: 1000,
+        }
+    ],
     ships: [{
         name: 'Mercury',
         img: 'images/ship1.png',
@@ -104,6 +137,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 10,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -114,7 +149,6 @@ module.exports = {
         height: 30,
         numberOfFrames: 1,
         ticksPerFrame: 4,
-
         maxSpeed: 200,
         accel: 300,
         energy: 100,
@@ -127,6 +161,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 15,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -149,6 +185,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 15,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
     }, {
         name: 'Jupiter',
@@ -170,6 +208,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 15,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -192,6 +232,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 10,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -214,6 +256,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 30,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -236,6 +280,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 30,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }, {
@@ -258,6 +304,8 @@ module.exports = {
         weaponHardpoints: [],
         maxCargo: 30,
         cargo: [],
+        subsystems: [],
+        maxSubsystems: 3,
         value: 1000,
 
     }],
@@ -307,7 +355,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: [0,0,1]
+        ores: [0, 0, 1]
     }, {
         name: 'radioactive',
         img: `images/asteroid2.png`,
@@ -317,7 +365,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: [1,2,2]
+        ores: [1, 2, 2]
     }, {
         name: 'precious',
         img: `images/asteroid3.png`,
@@ -327,7 +375,7 @@ module.exports = {
         ticksPerFrame: 8,
         shield: 0,
         hull: 100,
-        ores: [2,2,3]
+        ores: [2, 2, 3]
     }],
 
     spaceStations: [{
@@ -357,6 +405,14 @@ module.exports = {
         numberOfFrames: 1,
         ticksPerFrame: 4,
 
+    },{
+        name: 'Gallant',
+        mapImg: 'images/station1.png',
+        img: 'images/station1.png',
+        width: 256,
+        height: 256,
+        numberOfFrames: 1,
+        ticksPerFrame: 4,
     }],
     stars: [{
         img: 'images/star01.png',

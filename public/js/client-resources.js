@@ -75,6 +75,27 @@ const weapons = [{
     value: 1000,
     dissipation: 80,
 }];
+const subsystems = [{
+    name: 'Energy capacitator',
+    id: 0,
+    maxEnergy: 100,
+    value: 1000,
+}, {
+    name: 'Shield bank',
+    id: 1,
+    maxShield: 100,
+    value: 1000,
+}, {
+    name: 'Reinforced hull',
+    id: 2,
+    maxHull: 100,
+    value: 1000,
+}, {
+    name: 'Retrofitted cargobay',
+    id: 3,
+    maxCargo: 10,
+    value: 1000,
+}];
 const ships = [{
     name: 'Mercury',
     img: 'images/ship1.png',
@@ -231,6 +252,14 @@ const spaceStations = [{
     numberOfFrames: 1,
     ticksPerFrame: 4,
 
+}, {
+    name: 'Gallant',
+    mapImg: 'images/station1.png',
+    img: 'images/station1.png',
+    width: 256,
+    height: 256,
+    numberOfFrames: 1,
+    ticksPerFrame: 4,
 }]
 const stars = [{
     img: 'images/star01.png',
@@ -383,9 +412,9 @@ const objArray = {
     ships: {}
 };
 const visibleObjArray = {
+    stars: {},
     asteroids: {},
     ores: {},
-    stars: {},
     stations: {},
     exhausts: {},
     bullets: {},
@@ -464,7 +493,7 @@ const visibleObject = (type) => {
 const mapKeys = {};
 
 const userInputListener = () => {
-   //   console.log(mapKeys);
+    //   console.log(mapKeys);
     onkeydown = onkeyup = function (e) {
         e = e;
         mapKeys[e.keyCode] = e.type == 'keydown';
