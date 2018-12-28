@@ -319,7 +319,7 @@ const openInstruction = () => {
 
     instructionText.style.color = 'antiquewhite'
     instructionText.style.fontSize = '33px'
-    instructionText.innerHTML = 'Explore, Mine, Trade, Kill <br> Warning: Killing peaceful ships will result in retaliation. <br> Controls : WSAD to move. F to fire.<br> R to dock or pick up ores.'
+    instructionText.innerHTML = 'Explore, Mine, Trade, Kill <br> Warning: Killing peaceful ships will result in retaliation. <br> Controls : WSAD to move. F and R to fire.<br> E to dock or pick up ores.'
 
 }
 

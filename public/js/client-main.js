@@ -58,7 +58,7 @@ const playerInit = packet => {
     populateTradeObjects();
     main();
 };
-const invalidLogin = packet => console.log(packet[1])
+const invalidLogin = packet => alert(packet[1])
 
 //sending data to server
 const playerAction = (action = mapKeys) => {
