@@ -24,7 +24,7 @@ module.exports = {
         height: 16,
         numberOfFrames: 10,
         ticksPerFrame: 4,
-        damage: 100,
+        damage: 125,
     }, {
         name: 'homing-missile',
         img: 'images/missile1.png',

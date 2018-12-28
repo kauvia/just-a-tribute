@@ -128,9 +128,10 @@ const minimapStatics = () => {
         let station = objArray.stations[obj];
         let stationDisp = document.createElement('img');
         stationDisp.src = `${station.mapImg}`;
+        console.log(station)
         stationDisp.style.height = '20px';
         stationDisp.style.width = '20px';
-        if (stationDisp.src == 'images/skullcross.png') {
+        if (station.id == 'Minotaur') {
             stationDisp.style.height = '12px';
             stationDisp.style.width = '16px';
         }
@@ -172,7 +173,7 @@ const minimapUpdate = () => {
 
 const playerDetailSetup = () => {
     let menuButton = document.createElement('button');
-    playerContainer.appendChild(menuButton);
+ //   playerContainer.appendChild(menuButton);
     menuButton.innerHTML = 'Menu';
     menuButton.style.position = 'absolute';
     menuButton.style.top = '0px';

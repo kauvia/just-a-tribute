@@ -1,23 +1,23 @@
 let socket = io();
 
 //  login system
-// const loginAction = () => {  //actual thing
-//     let accInfo = {};
-//     accInfo['username'] = document.getElementById('username').value;
-//     accInfo['password'] = document.getElementById('password').value;
-//     accInfo['newAccount'] = document.getElementById('new-account').checked;
-//     accInfo['id'] = socket.id;
-//     socket.emit('login information', accInfo);
-// }
-const loginAction = () => { //DevOP purposes
+const loginAction = () => {  //actual thing
     let accInfo = {};
-    accInfo['username'] = 'a';
-    accInfo['password'] = 'a';
-    accInfo['newAccount'] = false;
+    accInfo['username'] = document.getElementById('username').value;
+    accInfo['password'] = document.getElementById('password').value;
+    accInfo['newAccount'] = document.getElementById('new-account').checked;
     accInfo['id'] = socket.id;
     socket.emit('login information', accInfo);
-
 }
+// const loginAction = () => { //DevOP purposes
+//     let accInfo = {};
+//     accInfo['username'] = 'a';
+//     accInfo['password'] = 'a';
+//     accInfo['newAccount'] = false;
+//     accInfo['id'] = socket.id;
+//     socket.emit('login information', accInfo);
+
+// }
 
 socket.on('login validation', (packet) => packet[0] ? playerInit(packet) : invalidLogin(packet))
 // initial packet upon successful login
@@ -117,6 +117,15 @@ socket.on('removeObj', pack => {
     if (player.id) {
         let obj = pack;
         if (obj.type == 'player' || obj.type == 'pirate' || obj.type == 'raider' || obj.type == 'trader' || obj.type == 'police' || obj.type == 'miner') {
+            if (obj.type != 'player') {
+                let distance = findDistance(obj, player);
+                if (distance <= 600) {
+                    let volume = 1;
+                    distance <= 50 ? volume = 1 :
+                        volume = 1 / distance * 50;
+                    playSound(explode1, true, 0, volume);
+                }
+            }
             delete objArray.ships[obj.id];
             delete visibleObjArray.ships[obj.id];
         } else if (obj.type == 'bullet') {
@@ -139,6 +148,26 @@ socket.on('addObj', pack => {
             console.log('new ship =' + obj)
         } else if (obj.type == 'bullet') {
             objArray.bullets[obj.id] = obj;
+            let distance = findDistance(obj, player);
+            if (distance <= 600) {
+                let volume = 1;
+                distance <= 50 ? volume = 1 :
+                    volume = 1 / distance * 50;
+                switch (obj.bullet.name) {
+                    case 'pea-shooter-bullet':
+                        playSound(gun1, true, 0, volume);
+                        break;
+                    case 'dumbfire-rocket':
+                        playSound(rocket1, true, 0, volume);
+                        break;
+                    case 'homing-missile':
+                        playSound(missile1, true, 0, volume);
+                        break;
+                    case 'c-beam':
+                        playSound(laser1, true, 0, volume);
+                        break;
+                }
+            }
 
         } else if (obj.type == 'asteroid') {
             objArray.asteroids[obj.id] = obj;
@@ -176,8 +205,8 @@ socket.on('trade update', pack => {
         player.oreCount = pack[1];
         player.credits = pack[2];
         player.ship = pack[3];
-  //      player.ship.weaponHardpoints = pack[4];
-  //      player.ship.subsystems = pack[5];
+        //      player.ship.weaponHardpoints = pack[4];
+        //      player.ship.subsystems = pack[5];
     }
     for (let i = 4; i < pack.length; i++) {
         objArray.stations[pack[i][1]].oreStock = pack[i][0]
@@ -186,7 +215,10 @@ socket.on('trade update', pack => {
 })
 socket.on('chat update', pack => {
     let chatBox = document.getElementById('chat-text');
-    chatBox.innerHTML += `<div> ${pack[0]} : ${pack[1]} </div>`    
+    chatBox.innerHTML += `<div> ${pack[0]} : ${pack[1]} </div>`
     chatBox.scrollTop = chatBox.scrollHeight;
 })
-socket.on('death', pack => console.log(`you got killed by ${pack}`))
+socket.on('death', pack => {
+    playSound(death1);
+    console.log(`you got killed by ${pack}`)
+})

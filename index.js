@@ -1240,6 +1240,7 @@ const generateAsteroids = (num, id, posX, width, posY, height) => {
 const generatePlayer = (x, y, id, shipId, weaponId) => {
   let player = new _player(x, y, 'player', id, new _ship(resources.ships[shipId]));
   player.credits = 0;
+ // player.karma = 1000;
   player.active = true;
   // player.ship.weaponHardpoints[1] = resources.weapons[2];
   // player.ship.weaponHardpoints[1].bullet = resources.bullets[2];

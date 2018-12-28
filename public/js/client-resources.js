@@ -420,6 +420,21 @@ const visibleObjArray = {
     bullets: {},
     ships: {}
 };
+const gun1 = new Audio('sounds/gun1.wav');
+const rocket1 = new Audio('sounds/rocket1.wav');
+const missile1 = new Audio('sounds/missile1.wav');
+const laser1 = new Audio('sounds/laser1.wav');
+const thruster = new Audio('sounds/thrust.wav');
+const death1 = new Audio('sounds/death1.wav');
+const explode1 = new Audio('sounds/explode1.wav');
+
+const playSound = (audio, resetTime = true,resetValue=0, volume = 1) => {
+    if (resetTime) {
+        audio.currentTime = resetValue;
+    };
+    audio.volume = volume;
+    audio.play();
+}
 
 const gameContainer = document.getElementById('container');
 const secondaryContainer = document.getElementById('secondary-container');
@@ -501,6 +516,9 @@ const userInputListener = () => {
             //        this.console.log(player.angle)
             if (objArray.ships[`${player.id}`].active) {
                 playerAction();
+                // if (mapKeys[87] || mapKeys[83]) {
+                //     playSound(thruster,true,-1);
+                // }
             }
         };
     }
