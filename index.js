@@ -33,12 +33,13 @@ const ranKey = obj => {
 const resources = require('./resources')
 
 const express = require("express");
-const mongojs = require('mongojs');
 const app = express();
 const http = require('http').Server(app)
 const io = require('socket.io')(http);
 const path = require("path");
-const db = mongojs('STAR_PLEBE');
+
+const mongojs = require('mongojs');
+const db = mongojs('mongodb://heroku_hqxttr37:4450dp67m4rfgjgpkacoefl77e@ds245234.mlab.com:45234/heroku_hqxttr37');
 const account = db.collection('account');
 
 const SOCKET_LIST = {};
@@ -129,14 +130,10 @@ const loginHandler = (data, socket) => {
           username: data.username,
           password: data.password
         });
-        io.to(data.id).emit('login validation', [true, {
-          playyername: data.username, // DUMMY VALUES
-          posxy: [212, 312], // FOR TESTING
-          ship: {
-            name: 'mars',
-            speed: 5 // PURPOSES
-          }
-        }]);
+        let player = generatePlayer(2000, 8000, data.id, 0, 0);
+        player.name = data.username;
+        PLAYER_LIST[data.id] = player;
+        io.to(data.id).emit('login validation', [true, staticObjArray, PLAYER_LIST, dynamicObjArray]);
       } else {
         io.to(data.id).emit('login validation', [false, 'password too short']);
         console.log('password too short')
@@ -1248,7 +1245,7 @@ for (let field in asteroidFields) {
 generateStation(4500, 4500, 1);
 generateStation(1000, 1000, 2);
 generateStation(8000, 6500, 0);
-generateStation(2000,8000, 3);
+generateStation(2000, 8000, 3);
 generateStars(3000);
 
 // for (let i = 0; i < 10; i++) {

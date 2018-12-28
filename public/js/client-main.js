@@ -1,23 +1,23 @@
 let socket = io();
 
 //  login system
-// const loginAction = () => {  //actual thing
-//     let accInfo = {};
-//     accInfo['username'] = document.getElementById('username').value;
-//     accInfo['password'] = document.getElementById('password').value;
-//     accInfo['newAccount'] = document.getElementById('new-account').checked;
-//     accInfo['id'] = socket.id;
-//     socket.emit('login information', accInfo);
-// }
-const loginAction = () => { //DevOP purposes
+const loginAction = () => {  //actual thing
     let accInfo = {};
-    accInfo['username'] = 'kau';
-    accInfo['password'] = '123';
-    accInfo['newAccount'] = false;
+    accInfo['username'] = document.getElementById('username').value;
+    accInfo['password'] = document.getElementById('password').value;
+    accInfo['newAccount'] = document.getElementById('new-account').checked;
     accInfo['id'] = socket.id;
     socket.emit('login information', accInfo);
-
 }
+// const loginAction = () => { //DevOP purposes
+//     let accInfo = {};
+//     accInfo['username'] = 'kau';
+//     accInfo['password'] = '123';
+//     accInfo['newAccount'] = false;
+//     accInfo['id'] = socket.id;
+//     socket.emit('login information', accInfo);
+
+// }
 
 socket.on('login validation', (packet) => packet[0] ? playerInit(packet) : invalidLogin(packet))
 // initial packet upon successful login
