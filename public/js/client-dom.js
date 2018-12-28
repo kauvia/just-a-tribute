@@ -39,6 +39,22 @@ const stationElements = () => {
 
 }
 
+const chatElements = () => {
+    let chatText = document.createElement('div');
+    chatText.id = 'chat-text';
+    gameContainer.appendChild(chatText);
+    let chatInput = document.createElement('input');
+    chatInput.type = 'text';
+    chatInput.id = 'chat-input';
+    gameContainer.appendChild(chatInput);
+    chatInput.addEventListener('keypress', e => {
+        let key = e.which || e.keyCode;
+        if (key === 13) {
+            playerAction(['chat',chatInput.value]);
+            chatInput.value = null;
+        }
+    })
+}
 const createPanels = (stationName, array) => {
     let container = document.createElement('div');
     for (let num in array) {

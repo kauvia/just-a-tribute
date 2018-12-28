@@ -1,23 +1,23 @@
 let socket = io();
 
 //  login system
-const loginAction = () => {  //actual thing
-    let accInfo = {};
-    accInfo['username'] = document.getElementById('username').value;
-    accInfo['password'] = document.getElementById('password').value;
-    accInfo['newAccount'] = document.getElementById('new-account').checked;
-    accInfo['id'] = socket.id;
-    socket.emit('login information', accInfo);
-}
-// const loginAction = () => { //DevOP purposes
+// const loginAction = () => {  //actual thing
 //     let accInfo = {};
-//     accInfo['username'] = 'kau';
-//     accInfo['password'] = '123';
-//     accInfo['newAccount'] = false;
+//     accInfo['username'] = document.getElementById('username').value;
+//     accInfo['password'] = document.getElementById('password').value;
+//     accInfo['newAccount'] = document.getElementById('new-account').checked;
 //     accInfo['id'] = socket.id;
 //     socket.emit('login information', accInfo);
-
 // }
+const loginAction = () => { //DevOP purposes
+    let accInfo = {};
+    accInfo['username'] = 'a';
+    accInfo['password'] = 'a';
+    accInfo['newAccount'] = false;
+    accInfo['id'] = socket.id;
+    socket.emit('login information', accInfo);
+
+}
 
 socket.on('login validation', (packet) => packet[0] ? playerInit(packet) : invalidLogin(packet))
 // initial packet upon successful login
@@ -56,6 +56,7 @@ const playerInit = packet => {
     playerDetailSetup();
     minimapStatics();
     populateTradeObjects();
+    chatElements();
     main();
 };
 const invalidLogin = packet => alert(packet[1])
@@ -182,5 +183,10 @@ socket.on('trade update', pack => {
         objArray.stations[pack[i][1]].oreStock = pack[i][0]
     }
     updateCreditCargoDisp();
+})
+socket.on('chat update', pack => {
+    let chatBox = document.getElementById('chat-text');
+    chatBox.innerHTML += `<div> ${pack[0]} : ${pack[1]} </div>`    
+    chatBox.scrollTop = chatBox.scrollHeight;
 })
 socket.on('death', pack => console.log(`you got killed by ${pack}`))

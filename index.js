@@ -173,6 +173,15 @@ const removeObjUpdate = (isBroadcast, sock, obj) => {
     }
   }
 }
+const chatUpdate = (id, msg, isTargeted = false, target = null) => {
+  playerName = PLAYER_LIST[id].name;
+  for (let i in SOCKET_LIST){
+    SOCKET_LIST[i].emit('chat update',[playerName,msg])
+  }
+}
+const chatHandler = (id, msg) => {
+  chatUpdate(id,msg)
+}
 const tradeHandler = (id, pack) => {
   let player = PLAYER_LIST[id];
   let station = staticObjArray.spaceStations[pack[1]];
@@ -308,6 +317,9 @@ const tradeHandler = (id, pack) => {
 const playerActionHandler = (id, pack) => {
   let player = PLAYER_LIST[id];
   let now = Date.now();
+  if (pack[0] == 'chat') {
+    chatHandler(id, pack[1]);
+  }
   if (pack[0] == 'buy' || pack[0] == 'buyAll' || pack[0] == 'sell' || pack[0] == 'sellAll') {
     tradeHandler(id, pack)
   }

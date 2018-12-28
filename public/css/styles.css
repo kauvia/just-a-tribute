@@ -13,8 +13,24 @@ body {
     height: 600px;
     width: 600px;
 }
-
-
+#chat-text {
+    position: absolute;
+    top: 490px;
+    width: 600px;
+    height:85px;
+    overflow-y: scroll;
+    background-color: rgba(27, 27, 27, 0.11);
+    color:navajowhite;
+}
+#chat-input{
+    position: absolute;
+    top:578px;
+    left:2px;
+    width:575px;
+    height:15px;
+    background-color: rgba(255, 255, 255, 0.158);
+    color:wheat;
+}
 
 .map-background {
     z-index: -1;
