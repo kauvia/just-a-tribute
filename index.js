@@ -70,8 +70,12 @@ const asteroidFields = [
   [150, 3000, 8000, 2000, 3000, 6000]
 ]
 
-http.listen(3001, () => {
-  console.log('listening on *:3001');
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3001;
+}
+http.listen(port, () => {
+  console.log(`listening on *:${port}`);
 });
 
 app.use(express.static('public'))
