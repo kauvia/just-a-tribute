@@ -37,9 +37,9 @@ const app = express();
 const http = require('http').Server(app)
 const io = require('socket.io')(http);
 const path = require("path");
-
+const mongodbURI = process.env.MONGOLAB_URI;
 const mongojs = require('mongojs');
-const db = mongojs('mongodb://heroku_hqxttr37:RNRtwe2YtTpR6nx@ds245234.mlab.com:45234/heroku_hqxttr37');
+const db = mongojs(mongodbURI);
 const account = db.collection('account');
 
 const SOCKET_LIST = {};
