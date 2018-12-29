@@ -39,7 +39,7 @@ const io = require('socket.io')(http);
 const path = require("path");
 
 const mongojs = require('mongojs');
-const db = mongojs('STAR_PLEBE');
+const db = mongojs('mongodb://heroku_hqxttr37:RNRtwe2YtTpR6nx@ds245234.mlab.com:45234/heroku_hqxttr37');
 const account = db.collection('account');
 
 const SOCKET_LIST = {};
